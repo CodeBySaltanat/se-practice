@@ -1,2 +1,2 @@
-"# SE Practice" 
-"Салтанат, КБТУ" 
+SE Practice
+Saltanat, KBTU
