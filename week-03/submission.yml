@@ -1,0 +1,38 @@
+schema: 1
+week: "03"
+
+student:
+  name: Saltanat Sultanakhmet
+  student_id: 24B032036
+  github: CodeBySaltanat
+
+assistant:
+  tool: Claude
+  model: Claude Sonnet 5
+
+counts:
+  user_stories: 6
+  acceptance_criteria_sets: 3
+
+checker:
+  pass: 22
+  fail: 1
+  error: 0
+  commit: 667a8f6
+
+assumptions:
+  overlap_touching_bookings: allowed
+  exactly_two_hours: allowed
+
+traceability:
+  use_cases_not_covered: []
+  stories_not_traced: []
+
+review_findings:
+  - US-01 assumption included an out-of-scope calendar/grid UI element.
+  - AC-01 included out-of-scope login/authentication requirements.
+  - UC-06 in the diagram was incorrectly triggered by Administrator instead of the system.
+
+honesty:
+  can_explain_everything_submitted: yes
+  ai_usage_disclosed: yes
