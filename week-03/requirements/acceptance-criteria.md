@@ -1,73 +1,67 @@
 # Acceptance criteria — three selected stories
 
-Assumptions first, then the criteria. Each block names the story it belongs to. 3 to 5 criteria per
-story, every one in Given / When / Then form, and every set covers a validation or error case — not
-three happy paths.
-
----
-
 ## Assumptions
-
-These must settle the two questions the scenario leaves open. Either answer is accepted; no answer
-is not.
-
-- **Overlap:** a booking that ends exactly when another begins is TODO (allowed / not allowed) under R3, because TODO.
-- **Duration:** a booking of exactly two hours is TODO (allowed / not allowed) under R2, because TODO.
-- TODO (any further assumption you needed)
+- **Overlap:** a booking that ends exactly when another begins is allowed under R3, because touching bookings do not share time.
+- **Duration:** a booking of exactly two hours is allowed under R2, because "at most" implies inclusive boundaries.
 
 ---
 
-## US-TODO — <story title>
+## US-02 — Book a Room
 
 ### AC-01
-- **Given** TODO
-- **When** TODO
-- **Then** TODO
+- **Given** a room is free and the requested time slot starts in the future and lasts exactly two hours
+- **When** the student submits the booking
+- **Then** the system creates the reservation and marks the room as booked
 
 ### AC-02
-- **Given** TODO
-- **When** TODO
-- **Then** TODO
+- **Given** the student selects a start time in the past
+- **When** they submit the booking
+- **Then** the system rejects the request and indicates bookings must start in the future
 
 ### AC-03
-- **Given** TODO
-- **When** TODO
-- **Then** TODO
-
----
-
-## US-TODO — <story title>
+- **Given** the requested time slot ends exactly when an existing booking begins
+- **When** the student submits the booking
+- **Then** the system accepts the request as they do not overlap
 
 ### AC-04
-- **Given** TODO
-- **When** TODO
-- **Then** TODO
-
-### AC-05
-- **Given** TODO
-- **When** TODO
-- **Then** TODO
-
-### AC-06
-- **Given** TODO
-- **When** TODO
-- **Then** TODO
+- **Given** the selected room is currently blocked
+- **When** the student submits the booking
+- **Then** the system rejects the request per R4
 
 ---
 
-## US-TODO — <story title>
+## US-03 — Cancel a Booking
+
+### AC-05
+- **Given** a student has an active future booking they created
+- **When** they request to cancel it
+- **Then** the system releases the room and marks the time slot as free
+
+### AC-06
+- **Given** a student attempts to cancel a booking belonging to someone else
+- **When** they submit the cancellation request
+- **Then** the system rejects the action
 
 ### AC-07
-- **Given** TODO
-- **When** TODO
-- **Then** TODO
+- **Given** a booking has already passed its start time
+- **When** they submit the cancellation request
+- **Then** the system rejects the action
+
+---
+
+## US-04 — Block or Unblock a Room
 
 ### AC-08
-- **Given** TODO
-- **When** TODO
-- **Then** TODO
+- **Given** a room is currently available
+- **When** an administrator blocks it
+- **Then** the room status changes to blocked and accepts no new bookings
 
 ### AC-09
-- **Given** TODO
-- **When** TODO
-- **Then** TODO
+- **Given** a room is currently blocked
+- **When** an administrator unblocks it
+- **Then** the room status changes to available
+
+### AC-10
+- **Given** a room is blocked
+- **When** a student attempts to book it
+- **Then** the system rejects the request
