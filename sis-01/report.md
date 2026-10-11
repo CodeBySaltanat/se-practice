@@ -78,6 +78,7 @@ My scenario is Users: University administration and students. Problem: The unive
 Separate facts from assumptions. Explain trade-offs and identify claims I should verify. Do not invent quotations, references or page numbers.
 
 **Response:**
+```text
 Draft (about 430 words)
 Ethical Issues in an Automated Programming Plagiarism Detector
 This system serves two main stakeholders: university administration, who need to protect academic integrity, and students, whose grades and reputations depend on fair treatment. Three ethical issues stand out.
@@ -118,6 +119,7 @@ I can also trim the draft to exactly 400 words, or restructure it around a stake
 
 **Prompt:**
 
+```text
 Review the draft below against my chosen question and scenario. Identify inaccuracies, missing reasoning, vague claims and unsupported assumptions.
 For each concern, explain why it matters and how I could check it. Include a counterexample or alternative interpretation. Do not rewrite the answer yet.
 Question: Discuss at least three ethical issues in software development. Analyze stakeholders, possible harms and safeguards in your scenario.
@@ -131,6 +133,7 @@ In summary, the system benefits administration by saving time and benefits hones
 
 **Response:**
 
+```text
 Several of these problems come from my earlier draft, so I've marked those. They're grouped by how much they affect your mark.
 Serious problems
 1. The retention "compromise" contradicts a stated constraint (my error).
@@ -188,6 +191,7 @@ Structure
 - **Purpose:** revision using my decisions and verified evidence
 **Prompt:**
 
+```text
 Revise the draft using my review decisions and source notes below. Keep the answer relevant to my scenario and preserve uncertainty where evidence is limited.
 
 My decisions:
@@ -212,6 +216,7 @@ Show what you changed and why. Use only the sources I supplied. Flag remaining g
 
 **Response:**
 
+```text
 Revised draft (about 450 words)
 Ethical Issues in an Automated Programming Plagiarism Detector
 This system affects several stakeholders: university administration, who must protect academic integrity; students, whose grades and reputations depend on fair treatment; teaching assistants, who may review flagged work; the external vendor, whose API analyzes the code; and the developers, who decide how the system is built and which vendor to use. Three ethical issues stand out.
