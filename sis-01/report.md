@@ -34,7 +34,7 @@ Prompt B's critique highlighted several critical gaps in the initial draft, forc
 
 Second, the critique noted I completely neglected the developers' own ethical choices. I verified this gap against the ACM/IEEE-CS Code of Ethics (Principle 1.03), which states engineers must only approve software if it passes appropriate tests and strictly protects privacy (verification row 1, keep decision). Consequently, I updated the analysis to explicitly hold developers accountable for testing accuracy and vetting the third-party vendor's data practices.
 
-Additionally, Prompt B warned that relying solely on 'human review' is dangerous due to automation bias—instructors might blindly trust a high similarity score. I accepted this insight, explicitly updating the text (change-log row 2) to mandate that reviewers receive contextual data, such as starter code and problem constraints. Finally, the AI originally claimed that the 5-minute processing constraint would drastically reduce accuracy by forcing simpler algorithms. I rejected this unsupported speculation (change-log row 1). Relying on an external API shifts the computational load, meaning the 5-minute limit is more of a networking constraint than a hard algorithmic bottleneck. I could not check the Sommerville chapter 1 claim in the book, so I dropped it and checked the JPlag README instead (verification row 2, qualify). These revisions grounded the final analysis in realistic software engineering ethics rather than generic assumptions.
+Additionally, Prompt B warned that relying solely on 'human review' is dangerous due to automation bias—instructors might blindly trust a high similarity score. I accepted this insight, explicitly updating the text (change-log row 2) to mandate that reviewers receive contextual data, such as starter code and problem constraints. Finally, the AI originally claimed that the 5-minute processing constraint would drastically reduce accuracy by forcing simpler algorithms. I rejected this unsupported speculation (change-log row 1). Relying on an external API shifts the computational load, meaning the 5-minute limit is more of a networking constraint than a hard algorithmic bottleneck. I could not check the Sommerville chapter 1 claim in the book, so I dropped it and checked the JPlag README instead (verification row 2, qualify). All twelve points of the critique are judged in the table in Appendix C. These revisions grounded the final analysis in realistic software engineering ethics rather than generic assumptions.
 
 ## 4. Conclusion
 
@@ -262,3 +262,20 @@ Remaining gaps to flag
 | --- | --- | --- |
 | "A faster, simpler method may produce more false positives... The university should accept some extra review time..." | (Removed completely from the final text) | The speed vs accuracy claim was unsupported speculation and violated the strict 5-minute constraint. |
 | "Every flag should be checked by a human instructor..." | "Human review is imperfect, however: reviewers may defer to a high score (automation bias)." | Prompt B highlighted that humans blindly trusting the system nullifies the safeguard; they need context. |
+
+### Critique decisions (Prompt B, all 12 points)
+
+| # | Prompt B point | Decision | Reason |
+| --- | --- | --- | --- |
+| 1 | Retention compromise contradicts the no-storage constraint | qualify | Correct, so I removed it; I assume the LMS keeps originals and say this is an assumption |
+| 2 | External API role not analysed | keep | A contract cannot prove deletion; this became the main limitation in the Conclusion |
+| 3 | Developers' own ethical choices missing | keep | Checked in ACM/IEEE-CS Principle 1.03 (verification row 1) and added to the analysis |
+| 4 | Stakeholders too narrow | keep | Added teaching assistants, the vendor and the developers |
+| 5 | Human review is not a complete safeguard | qualify | Review still needed, but reviewers must get starter code and context against automation bias |
+| 6 | Appeals conflict with no-storage | keep | Resolved by the LMS assumption: originals stay available for appeals |
+| 7 | False negatives and collaboration ignored | reject | Real issue, but the question and word limit focus on harm to innocent students; noted as a limit |
+| 8 | "Usually measure similarity" is unsourced | qualify | JPlag README supports similarity measuring; "short tasks give false positives" stays my assumption (verification row 2) |
+| 9 | Speed claim unsupported | reject | I challenged it: the 5-minute limit depends on the vendor API and network, not proven to lower accuracy; removed |
+| 10 | Outcomes and "vetted provider" unexplained | qualify | Softened "disciplinary records" to "disciplinary process"; vetting stays a vendor terms check |
+| 11 | Assumptions not marked | keep | Marked the LMS and API assumptions as assumptions |
+| 12 | "Personal academic work" vague | keep | Dropped the phrase from the privacy section |
