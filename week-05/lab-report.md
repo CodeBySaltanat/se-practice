@@ -137,17 +137,33 @@ Base input for every row unless the row says otherwise: `now=540, blocked=False,
 
 | # | Test name | Request (start, end) | What differs from the base input | Expected | AC | Result on v1 | Result on final |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | | | | | | | |
-| 2 | | | | | | | |
-| 3 | | | | | | | |
-| 4 | | | | | | | |
-| 5 | | | | | | | |
-| 6 | | | | | | | |
-| 7 | | | | | | | |
-| 8 | | | | | | | |
-| 9 | | | | | | | |
-| 10 | | | | | | | |
-| 11 | | | | | | | |
+| 1 | test_touching_end_is_allowed | (660, 720) | nothing (task table case) | True | AC4 | pass | pass |
+| 2 | test_overlap_is_rejected | (630, 690) | nothing (task table case) | False | AC4 | pass | pass |
+| 3 | test_blocked_room_is_rejected | (660, 720) | blocked=True (task table case) | False | AC3 | pass | pass |
+| 4 | test_exactly_two_hours_is_allowed | (720, 840) | nothing (task table case) | True | AC2 | pass | pass |
+| 5 | test_over_two_hours_is_rejected | (720, 841) | nothing (task table case) | False | AC2 | pass | pass |
+| 6 | test_start_equal_to_now_is_rejected | (540, 570) | nothing (task table case) | False | AC1 | pass | pass |
+| 7 | test_zero_length_is_rejected | (700, 700) | existing=[] | False | AC1 | pass | pass |
+| 8 | test_reversed_times_are_rejected | (720, 700) | existing=[] | False | AC1 | pass | pass |
+| 9 | test_end_after_day_is_rejected | (1380, 1441) | existing=[] (61 min, so AC2 is not the reason) | False | AC1 | pass | pass |
+| 10 | test_booking_ending_exactly_at_day_end_is_allowed | (1380, 1440) | existing=[] | True | AC1 | pass | pass |
+| 11 | test_last_minute_slot_is_allowed | (1439, 1440) | existing=[] | True | AC1 | pass | pass |
+| 12 | test_start_just_after_now_is_allowed | (541, 600) | existing=[] | True | AC1 | pass | pass |
+| 13 | test_empty_existing_allows_valid_request | (700, 760) | existing=[] | True | AC4, AC5 | pass | pass |
+| 14 | test_conflict_with_last_of_several_bookings | (820, 880) | existing=[(600, 660), (700, 760), (800, 860)] | False | AC4 | pass | pass |
+| 15 | test_conflict_with_middle_of_several_bookings | (710, 750) | existing=[(600, 660), (700, 760), (800, 860)] | False | AC4 | pass | pass |
+| 16 | test_exact_gap_between_several_bookings_is_allowed | (600, 660) | now=500, existing=[(540, 600), (660, 720)] | True | AC4 | pass | pass |
+| 17 | test_new_inside_existing_is_rejected | (615, 645) | nothing | False | AC4 | pass | pass |
+| 18 | test_new_contains_existing_is_rejected | (570, 690) | nothing | False | AC4 | pass | pass |
+| 19 | test_identical_interval_is_rejected | (600, 660) | nothing | False | AC4 | pass | pass |
+| 20 | test_touching_start_is_allowed | (540, 600) | now=500, so AC1 does not decide | True | AC4 | pass | pass |
+| 21 | test_one_minute_overlap_at_start_is_rejected | (599, 601) | nothing | False | AC4 | pass | pass |
+| 22 | test_one_minute_overlap_at_end_is_rejected | (659, 700) | nothing | False | AC4 | pass | pass |
+| 23 | test_existing_unchanged_after_true | (660, 700) | existing=[(700, 760), (600, 660)], list compared with a deep copy after the call | True, list unchanged | AC5 | pass | pass |
+| 24 | test_existing_unchanged_after_false | (630, 690) | existing=[(700, 760), (600, 660)], list compared with a deep copy after the call | False, list unchanged | AC5 | pass | pass |
+| 25 | test_nothing_can_be_booked_when_now_is_last_minute | (1439, 1440) | now=1439, existing=[] | False | AC1 | pass | pass |
+
+Every test uses `assertIs(..., True/False)`, so a truthy value that is not a real Boolean would fail (AC5).
 
 ---
 
@@ -159,27 +175,47 @@ cause column says why no change was needed.
 
 | # | Input (the full call) | Expected | Actual | Cause (quote the line) | Fix | Who proposed the fix |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | | | | | | |
+| 1 | `can_book(1439, 1440, 1439, False, [])` | False | False | No defect. `if start <= now:` rejects `start == now`, and `if not (0 <= start < end <= 1440):` forces `start <= 1439`, so with `now=1439` nothing can be booked, as AC1 requires | No change needed. Added as test 25 (`test_nothing_can_be_booked_when_now_is_last_minute`) after v1 passed everything | Me (no fix) |
 
 **The debug prompt I sent, and the assistant's answer** (leave the block empty if you did not use it):
 
 ````text
 ````
 
+v1 passed all my tests and all F checks, so I did not use the debug prompt (Prompt 3).
+
 ---
 
 ## 6. Task 5 — the critique
 
+Note: I lost the original chat with the assistant before this step. I opened a new chat with the
+same model (Claude Sonnet 5.5), sent the task block from README §3 as the first message, and then
+sent the critique prompt unchanged with my final code (identical to v1) below it.
+
 **The assistant's critique, pasted unedited:**
 
 ````text
-(paste here)
+I found no violations of the contract or AC1–AC5 in this implementation.
+
+* AC1: `if not (0 <= start < end <= 1440):` and `if start <= now:` together require `0 <= start < end <= 1440` and `start > now`. Rejecting `start <= now` is the correct inverse of `start > now`.
+* AC2: `if end - start > 120:` allows exactly 120 minutes and rejects 121.
+* AC3: `if blocked:` rejects blocked rooms. The contract says `blocked` is a Boolean, so a truthiness check is fine.
+* AC4: `if start < e and s < end:` is the standard overlap test for intervals that include the start and exclude the end. Bookings that only touch, like `(600, 660)` and `(660, 720)`, are correctly allowed.
+* AC5: it returns `True` only after every check passes. `existing` is only iterated, and no inputs are reassigned or changed.
+
+There is one minor point that isn't a violation of the criteria:
+
+* Contract, "Times are integer minutes": `if not (0 <= start < end <= 1440):` doesn't check the type of `start` or `end`. A float such as `start=600.5` would pass. The contract describes times as integers but, unlike `now` and `existing`, doesn't say `start` and `end` are guaranteed valid. Whether this matters depends on whether callers can pass non-integers. If the system guarantees integers, no change is needed.
 ````
 
 | # | Suggestion | accept / reject | Reason — cite the AC or the contract line | Suite after the change |
 | --- | --- | --- | --- | --- |
-| 1 | | accept / reject | | |
-| 2 | | accept / reject | | |
+| 1 | AC1 is correct: `start <= now` is the inverse of `start > now` | accept (no change) | AC1 says `start > now`; my tests 6, 12 and 25 check both sides of this bound and pass | no change, 25 tests OK |
+| 2 | AC2 is correct: `end - start > 120` allows 120, rejects 121 | accept (no change) | AC2 "at most 120 minutes"; tests 4 and 5 check 120 and 121 | no change, 25 tests OK |
+| 3 | AC3 is correct: `if blocked:` is fine because blocked is a Boolean | accept (no change) | Contract: "blocked is a Boolean"; test 3 | no change, 25 tests OK |
+| 4 | AC4 is correct: `start < e and s < end` allows touching | accept (no change) | AC4 "Touching endpoints are allowed" and "Intervals include the start and exclude the end"; tests 1, 2, 17-22 | no change, 25 tests OK |
+| 5 | AC5 is correct: True only after all checks, `existing` only iterated | accept (no change) | AC5 "never alter existing"; tests 23 and 24 compare the list with a deep copy | no change, 25 tests OK |
+| 6 | No type check on `start` / `end`, so `600.5` passes | reject | Contract line "Times are integer minutes after midnight": integers are given by the caller. A type check would be a rule that no AC asks for, and AC5 only allows True/False, so raising an error is not wanted either. My decision is in section 9.2 | no change, 25 tests OK |
 
 ---
 
@@ -187,7 +223,7 @@ cause column says why no change was needed.
 
 | # | What changed (the line, before → after) | Why | Evidence: the test or check that moved |
 | --- | --- | --- | --- |
-| 1 | | | |
+| 1 | Nothing changed: `code/booking.py` is identical to `code/original/booking_v1.py` | v1 passed all 25 of my tests and F1-F10; the only critique point that asked for something (type check) was rejected in section 6 | Checker: "v1 ... passes F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 - fails nothing - identical to your final: yes" |
 
 ---
 
@@ -198,7 +234,37 @@ cause column says why no change was needed.
 Paste the **complete** terminal output. For Python: everything `python -m unittest -v` printed.
 
 ````text
-(paste here)
+C:\Users\Saltanat\se-practice\week-05\code>python -m unittest -v
+test_blocked_room_is_rejected (test_booking.TestCanBook.test_blocked_room_is_rejected) ... ok
+test_booking_ending_exactly_at_day_end_is_allowed (test_booking.TestCanBook.test_booking_ending_exactly_at_day_end_is_allowed) ... ok
+test_conflict_with_last_of_several_bookings (test_booking.TestCanBook.test_conflict_with_last_of_several_bookings) ... ok
+test_conflict_with_middle_of_several_bookings (test_booking.TestCanBook.test_conflict_with_middle_of_several_bookings) ... ok
+test_empty_existing_allows_valid_request (test_booking.TestCanBook.test_empty_existing_allows_valid_request) ... ok
+test_end_after_day_is_rejected (test_booking.TestCanBook.test_end_after_day_is_rejected) ... ok
+test_exact_gap_between_several_bookings_is_allowed (test_booking.TestCanBook.test_exact_gap_between_several_bookings_is_allowed) ... ok
+test_exactly_two_hours_is_allowed (test_booking.TestCanBook.test_exactly_two_hours_is_allowed) ... ok
+test_existing_unchanged_after_false (test_booking.TestCanBook.test_existing_unchanged_after_false) ... ok
+test_existing_unchanged_after_true (test_booking.TestCanBook.test_existing_unchanged_after_true) ... ok
+test_identical_interval_is_rejected (test_booking.TestCanBook.test_identical_interval_is_rejected) ... ok
+test_last_minute_slot_is_allowed (test_booking.TestCanBook.test_last_minute_slot_is_allowed) ... ok
+test_new_contains_existing_is_rejected (test_booking.TestCanBook.test_new_contains_existing_is_rejected) ... ok
+test_new_inside_existing_is_rejected (test_booking.TestCanBook.test_new_inside_existing_is_rejected) ... ok
+test_nothing_can_be_booked_when_now_is_last_minute (test_booking.TestCanBook.test_nothing_can_be_booked_when_now_is_last_minute) ... ok
+test_one_minute_overlap_at_end_is_rejected (test_booking.TestCanBook.test_one_minute_overlap_at_end_is_rejected) ... ok
+test_one_minute_overlap_at_start_is_rejected (test_booking.TestCanBook.test_one_minute_overlap_at_start_is_rejected) ... ok
+test_over_two_hours_is_rejected (test_booking.TestCanBook.test_over_two_hours_is_rejected) ... ok
+test_overlap_is_rejected (test_booking.TestCanBook.test_overlap_is_rejected) ... ok
+test_reversed_times_are_rejected (test_booking.TestCanBook.test_reversed_times_are_rejected) ... ok
+test_start_equal_to_now_is_rejected (test_booking.TestCanBook.test_start_equal_to_now_is_rejected) ... ok
+test_start_just_after_now_is_allowed (test_booking.TestCanBook.test_start_just_after_now_is_allowed) ... ok
+test_touching_end_is_allowed (test_booking.TestCanBook.test_touching_end_is_allowed) ... ok
+test_touching_start_is_allowed (test_booking.TestCanBook.test_touching_start_is_allowed) ... ok
+test_zero_length_is_rejected (test_booking.TestCanBook.test_zero_length_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 0.088s
+
+OK
 ````
 
 ### 8.2 The checker, final run
@@ -207,7 +273,44 @@ Paste the **complete** output of `python tests/check_booking.py`. Paste it **las
 this file afterwards, run the checker again and paste again.
 
 ````text
-(paste here)
+Week 05 - can_book: the function, your tests, the evidence   (Path A)
+
+PASS   F1   the six cases from the task table           6 of 6 cases
+PASS   F2   AC1 time order and day bounds               5 of 5 cases
+PASS   F3   AC1 the start is in the future              5 of 5 cases
+PASS   F4   AC2 at most 120 minutes                     3 of 3 cases
+PASS   F5   AC3 a blocked room accepts nothing          2 of 2 cases
+PASS   F6   AC4 every kind of overlap is rejected       5 of 5 cases
+PASS   F7   AC4 touching endpoints are allowed          3 of 3 cases
+PASS   F8   AC4 every existing booking is checked       4 of 4 cases
+PASS   F9   AC5 the result is a real Boolean            3 of 3 cases
+PASS   F10  AC5 the inputs are left unchanged           2 of 2 cases
+PASS   O1   the assistant's first version is kept       v1 kept (13 lines)
+PASS   S1   your suite has at least 11 tests            25 tests
+PASS   S2   your suite is green on your own code        25 tests, OK
+PASS   M1   your tests catch a fault in AC1             caught by test_nothing_can_be_booked_when_now_is_last_minute, test_start_equal_to_now_is_rejected
+PASS   M2   your tests catch a fault in AC1             caught by test_end_after_day_is_rejected
+PASS   M3   your tests catch a fault in AC1             caught by test_zero_length_is_rejected
+PASS   M4   your tests catch a fault in AC2             caught by test_exactly_two_hours_is_allowed
+PASS   M5   your tests catch a fault in AC3             caught by test_blocked_room_is_rejected
+PASS   M6   your tests catch a fault in AC4             caught by test_exact_gap_between_several_bookings_is_allowed, test_existing_unchanged_after_true, test_touching_end_is_allowed and 1 more
+PASS   M7   your tests catch a fault in AC4             caught by test_conflict_with_last_of_several_bookings, test_conflict_with_middle_of_several_bookings, test_existing_unchanged_after_false
+PASS   M8   your tests catch a fault in AC4             caught by test_new_contains_existing_is_rejected
+PASS   M9   your tests catch a fault in AC5             caught by test_existing_unchanged_after_true
+PASS   M10  your tests catch a fault in AC5             caught by test_existing_unchanged_after_false, test_existing_unchanged_after_true
+PASS   L1   report 1: tool, model and language          tool, model and language recorded
+PASS   L2   report 2: the plan, and what you corrected  plan pasted, 23 row(s) on what you corrected or verified
+PASS   L3   report 3: v1 mapped to AC1-AC4              6 conditions mapped, AC1-AC4 all present
+PASS   L4   report 4: at least 11 of your tests listed  25 tests listed
+PASS   L5   report 5: debugging evidence                1 row(s) of input / expected / actual
+PASS   L6   report 6: the critique, each point judged   critique pasted, 6 points judged
+PASS   L7   report 7: change log                        1 change-log row(s)
+PASS   L8   report 8.1: real output of your suite       suite output pasted
+PASS   L9   report 10: conclusion of 120-180 words      168 words
+------------------------------------------------------------------------------
+v1 (code/original/booking_v1.py): passes F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 - fails nothing - identical to your final: yes
+SUMMARY pass=32 fail=0 error=0   (32 checks)
+Behaviour and shape are clean. This says nothing about the quality of your review.
 ````
 
 ### 8.3 Path B only — three faults I planted myself
@@ -235,21 +338,22 @@ The same IDs as `known_fails` in `submission.yml`. Write `none` if the run is cl
 
 | Check | Why it stays |
 | --- | --- |
-| | |
+| none | The final run has 0 FAIL and 0 ERROR |
 
 ### 9.2 Outside the contract
 
 The contract says times are integers. It does not say what `can_book` does when one is not —
 `600.5`, or the string `"600"`. What does **your** function do, and why is that the right call?
 
--
+- My function does not handle it (`not-handled`). I ran both cases: `can_book(600.5, 660, 540, False, [])` returned `True`, and `can_book('600', 660, 540, False, [])` raised `TypeError: '<=' not supported between instances of 'int' and 'str'` on the line `if not (0 <= start < end <= 1440):`.
+- I kept it this way on purpose. The contract says times are integer minutes, so making sure of that is the caller's job. Adding a type check would add a rule that no AC asks for, and raising my own error would go against AC5, which says the result is only True or False. If the system ever has to accept other input, that has to be a new acceptance criterion first, and then a test for it.
 
 ### 9.3 A bound that never decides
 
 One of the bounds written in AC1 can never be the *only* reason a request is rejected. Which one,
 and why?
 
--
+- The bound `0 <= start`. The contract says `now` is between 0 and 1439, and AC1 also needs `start > now`, so `start` is always at least 1 when the other rule holds. Any `start` below 0 is already rejected by `start > now`, so `0 <= start` never decides alone. (The plan's boundary table said the same: `start=0` can never pass because `now >= 0`.)
 
 ---
 
@@ -265,4 +369,6 @@ and why?
      Worth everything: "F7 failed on can_book(570, 600, ...): v1 compared with <= on the start
      side, so a booking that ends exactly when another begins was rejected." -->
 
-<!-- Write your conclusion below this line -->
+The overlap check in my code is `if start < e and s < end`. Two bookings only overlap when the new one starts before the old one ends and the old one starts before the new one ends. Both comparisons are strict, because the end minute isn't part of the booking. So for (660, 720) against (600, 660) the first part is 660 < 660, which is False, so touching bookings are allowed.
+None of the ten faults got through my suite and all M checks passed. The weakest spots were M2 and M8, since each of them were caught by only one test: test_end_after_day_is_rejected and test_new_contains_existing_is_rejected. Like my other tests, each one checks a single AC boundary.
+I had to decide myself what happens with 600.5 or "600". I left it unhandled, because the contract says times are integers, and I rejected the critique point about a type check since there is no AC that ask for it.
