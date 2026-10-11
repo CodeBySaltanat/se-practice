@@ -34,7 +34,7 @@ Prompt B's critique highlighted several critical gaps in the initial draft, forc
 
 Second, the critique noted I completely neglected the developers' own ethical choices. I verified this gap against the ACM/IEEE-CS Code of Ethics (Principle 1.03), which states engineers must only approve software if it passes appropriate tests and strictly protects privacy (verification row 1, keep decision). Consequently, I updated the analysis to explicitly hold developers accountable for testing accuracy and vetting the third-party vendor's data practices.
 
-Additionally, Prompt B warned that relying solely on 'human review' is dangerous due to automation bias—instructors might blindly trust a high similarity score. I accepted this insight, explicitly updating the text (change-log row 2) to mandate that reviewers receive contextual data, such as starter code and problem constraints. Finally, the AI originally claimed that the 5-minute processing constraint would drastically reduce accuracy by forcing simpler algorithms. I rejected this unsupported speculation (change-log row 1). Relying on an external API shifts the computational load, meaning the 5-minute limit is more of a networking constraint than a hard algorithmic bottleneck. These revisions grounded the final analysis in realistic software engineering ethics rather than generic assumptions.
+Additionally, Prompt B warned that relying solely on 'human review' is dangerous due to automation bias—instructors might blindly trust a high similarity score. I accepted this insight, explicitly updating the text (change-log row 2) to mandate that reviewers receive contextual data, such as starter code and problem constraints. Finally, the AI originally claimed that the 5-minute processing constraint would drastically reduce accuracy by forcing simpler algorithms. I rejected this unsupported speculation (change-log row 1). Relying on an external API shifts the computational load, meaning the 5-minute limit is more of a networking constraint than a hard algorithmic bottleneck. I could not check the Sommerville chapter 1 claim in the book, so I dropped it and checked the JPlag README instead (verification row 2, qualify). These revisions grounded the final analysis in realistic software engineering ethics rather than generic assumptions.
 
 ## 4. Conclusion
 
@@ -49,7 +49,7 @@ Working on this assignment with Claude was very interesting experience for me. A
 ## 6. References
 
 - ACM/IEEE-CS. (1999). Software Engineering Code of Ethics and Professional Practice. URL: https://www.acm.org/code-of-ethics/software-engineering-code (accessed 2026-10-11).
-- Sommerville, I. (2016). Software Engineering, 10th ed., Global Edition. Pearson. Ch. 1.
+- JPlag. README. URL: https://github.com/jplag/JPlag (accessed 2026-10-11).
 
 ## 7. Appendix A — Initial outline
 
@@ -76,6 +76,7 @@ Act as a software engineering tutor. Help me analyze topic 1.4: Discuss at least
 My scenario is Users: University administration and students. Problem: The university needs a system to automatically detect plagiarism in programming assignments. Constraints: The system must process submissions within 5 minutes, and it must not permanently store student code. Risk: False positives that unjustly accuse innocent students of cheating. My initial ideas are 1. Plagiarism detection involves ethical handling of student data. 2. False positives can ruin a student's academic career. 3. Relying on a third-party API raises data privacy concerns. 4. The system must be transparent about how it flags code. 5. There should be a manual appeal process for flagged students. Draft a 400–500 word explanation using these details.
 
 Separate facts from assumptions. Explain trade-offs and identify claims I should verify. Do not invent quotations, references or page numbers.
+```
 
 **Response:**
 ```text
@@ -109,6 +110,7 @@ Claims to verify before submitting
 5. How accuracy and speed actually trade off in real tools. I presented this as a likely risk, not an established fact.
 I haven't included any citations, quotations or page numbers. If your assignment requires references, add them from your own sources after verifying the claims above.
 I can also trim the draft to exactly 400 words, or restructure it around a stakeholder-harm-safeguard table if your assignment asks for that format.
+```
 
 ### B2 — Critique (Prompt B)
 
@@ -130,6 +132,7 @@ The first issue is false accusations. Plagiarism detectors usually measure simil
 The second issue is privacy and data handling. Student code is personal academic work. The constraint that the system must not permanently store code protects students, but it creates a trade-off: if code is deleted, the university cannot later show the evidence behind a flag, and students cannot easily challenge it. One compromise is to keep only minimal records, such as similarity scores and the matched code segments for flagged cases, for a limited period, with the policy stated openly. If the system relies on a third-party API, the code leaves university control, so a contract should confirm that the provider does not retain or reuse submissions.
 The third issue is transparency and accountability. Students and staff should know what the system compares, what counts as a flag and what its known limits are. A hidden algorithm is hard to question, which makes unfair outcomes harder to detect. The five-minute processing limit adds pressure here, because a faster, simpler method may produce more false positives than a slower, more careful one. The university should accept some extra review time if accuracy suffers otherwise.
 In summary, the system benefits administration by saving time and benefits honest students by keeping grading fair, but it puts innocent students at risk if it is trusted too much. Human review, minimal and time-limited data retention, a vetted third-party provider and clear explanations of how flags are produced would reduce these harms while still meeting the stated constraints.
+```
 
 **Response:**
 
@@ -182,6 +185,7 @@ Vague or unsupported claims
 Structure
 11. The assumptions aren't marked. Your task separates facts from assumptions, but the draft blends them. Label what comes from the scenario (the constraints, the external API) and what you inferred.
 12. "Student code is personal academic work" is vague. It could mean privacy, ownership or reputation, and each leads to a different harm and safeguard. Pick one and say so.
+```
 
 ### B3 — Revision (Prompt C)
 
@@ -213,6 +217,7 @@ The third issue is transparency and accountability. Students and staff should kn
 In summary, the system benefits administration by saving time and benefits honest students by keeping grading fair, but it puts innocent students at risk if it is trusted too much. Human review, minimal and time-limited data retention, a vetted third-party provider and clear explanations of how flags are produced would reduce these harms while still meeting the stated constraints.
 
 Show what you changed and why. Use only the sources I supplied. Flag remaining gaps instead of inventing details.
+```
 
 **Response:**
 
@@ -238,6 +243,7 @@ Remaining gaps to flag
 4. Unknown API behavior. I don't know whether the API returns only a score or also the matched segments. That decides how explainable flags are and what context reviewers get. The draft hedges with "as much explanation as the API allows."
 5. The 5-minute constraint is no longer discussed. If your assignment expects every constraint addressed, add one neutral sentence, such as whether the vendor's response time is known.
 6. Points you didn't decide on: false negatives and legitimate collaboration (7), unexplained outcomes such as "vetted provider" (10) and the "personal academic work" wording (12). I dropped the phrase from privacy, but the draft still doesn't discuss false negatives or permitted collaboration.
+```
 
 ## 9. Appendix C — Evidence tables
 
@@ -246,8 +252,8 @@ Remaining gaps to flag
 
 | AI claim | Source and locator | Evidence found | Decision |
 | --- | --- | --- | --- |
-| "Missing are the developers' own ethical choices: testing accuracy before launch..." | ACM/IEEE-CS Software Engineering Code of Ethics, Principle 1.03 | Software engineers must approve software only if it passes appropriate tests and does not diminish privacy. | keep |
-| "In first-year programming tasks, many correct solutions look alike because the problem is small..." | Sommerville, I. (2016). Software Engineering, 10th ed. Ch. 1 | Sommerville discusses constraints in software, but this specific claim about similarity tools is better treated as a known domain assumption. | qualify |
+| "Missing are the developers' own ethical choices: testing accuracy before launch..." | ACM/IEEE-CS Software Engineering Code of Ethics, Principle 1.03, https://www.acm.org/code-of-ethics/software-engineering-code (accessed 2026-10-11) | Software engineers must approve software only if it passes appropriate tests and does not diminish privacy. | keep |
+| "Plagiarism detectors usually measure similarity between submissions, and similarity is not proof of copying." | JPlag README, opening description, https://github.com/jplag/JPlag (accessed 2026-10-11) | The README describes JPlag as finding "pairwise similarities among a set of multiple programs", so such tools do measure similarity. It does not say that similarity is not proof of copying or that short tasks give false positives, so that part stays my assumption. | qualify |
 
 ### Change log
 
