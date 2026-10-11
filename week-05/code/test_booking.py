@@ -97,6 +97,11 @@ class TestCanBook(unittest.TestCase):
         self.assertIs(can_book(630, 690, NOW, False, existing), False)
         self.assertEqual(existing, before)
 
+    # ---- new edge case added after v1 passed everything ----
+    def test_nothing_can_be_booked_when_now_is_last_minute(self):  # AC1: start > now
+        # now=1439 is valid; start must be > 1439 but start < end <= 1440 forces start <= 1439
+        self.assertIs(can_book(1439, 1440, 1439, False, []), False)
+
 
 if __name__ == "__main__":
     unittest.main()
