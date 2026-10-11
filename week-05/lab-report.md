@@ -107,21 +107,27 @@ row saying which lines of the plan you checked against which AC.
 
 ## 3. Task 2 — the first version (v1), read before it was run
 
-v1 is saved as `code/original/booking_v1.<ext>`, exactly as the assistant returned it: yes / no
+v1 is saved as `code/original/booking_v1.py`, exactly as the assistant returned it: yes
+
+I read v1 line by line against AC1-AC5 before running anything. v1 was committed before any change.
 
 **AC map.** One row per condition in v1. Quote the line.
 
 | # | Line in v1 | AC it implements | Correct as written? If not, why |
 | --- | --- | --- | --- |
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
-| 4 | | | |
+| 1 | `if not (0 <= start < end <= 1440):` | AC1, first part | Yes: keeps the booking inside the day (`end == 1440` allowed) and rejects zero-length and reversed intervals |
+| 2 | `if start <= now:` | AC1, second part | Yes: it is `start > now` turned around, so `start == now` is rejected, as AC1 requires |
+| 3 | `if end - start > 120:` | AC2 | Yes: `>` and not `>=`, so exactly 120 minutes is allowed |
+| 4 | `if blocked:` | AC3 | Yes: a blocked room returns False whatever the times are |
+| 5 | `if start < e and s < end:` | AC4 | Yes: strict comparisons on half-open intervals, so touching endpoints are allowed, while partial overlap, inside, containing and identical intervals are rejected |
+| 6 | `return True` and the five `return False` lines | AC5 | Yes: literal booleans, `True` is reached only when AC1-AC4 hold; the loop only reads `existing` |
+
+What I expected before running v1: every comparison in the six rows has the right strictness, so I expect v1 to pass all six table cases. I cannot be sure about the hidden checks until the checker runs.
 
 **Anything in v1 that no AC asks for** (extra validation, a buffer between bookings, logging,
 saving the booking, a different return type):
 
--
+- Nothing. There is no extra validation, no buffer, no logging, no saving, and the return type is bool.
 
 ---
 
