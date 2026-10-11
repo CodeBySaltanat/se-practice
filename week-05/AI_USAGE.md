@@ -19,7 +19,7 @@ The tests in code/test_booking.py were checked against AC1–AC5 and the overlap
 **Everything I submitted, I can explain and defend in class — including the overlap condition:** yes
 
 **Anything I accepted from the AI without fully understanding it:**
-Nothing in the code. I verified the expected values in the tests against the contract. I also checked the facts in the report against my own runs (for example, the 600.5 / “600” results in §9.2). I wrote §10 myself.
+Nothing in the code. I verified the expected values in the tests against the contract. I also checked the facts in the report against my own runs (for example, the 600.5 / "600" results in §9.2). §10 started from a draft by the helper chat, which I then edited myself.
 
 Small honest notes: the message of commit `f640ea7` says "25 tests", but at that moment the suite
 had 24; the 25th test was added in `5f10934`. Commit `f640ea7` also included `__pycache__` by
