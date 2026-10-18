@@ -1,0 +1,36 @@
+# SIS #02 — the declaration. FACTS ONLY: every explanation stays in report.md.
+schema: 1
+assignment: "sis-02"            # do not edit
+
+student:
+  name: Saltanat Sultanakhmet
+  student_id: "24B032036"
+  group: Monday 16:00-19:00
+  github: CodeBySaltanat
+
+assistant:
+  tool: Claude.ai
+  model: Claude Opus 5.5
+
+checker:
+  pass: 44
+  fail: 0
+  error: 0
+  commit: a36a89a
+
+counts:
+  stories: 3
+  criteria: 6
+  exchanges: 4
+  review_decisions: 6
+  source_checks: 2
+  explanation_words: 296
+  reflection_words: 185
+
+walkthroughs:
+  T1: pass
+  T2: pass
+  T3: pass
+  T4: pass
+
+known_fails: []
