@@ -1,4 +1,58 @@
-' SIS #02 — your FINAL class diagram goes here, as PlantUML (@startuml … @enduml).
-' The file is classes.puml (plural), not class.puml as in Week 04.
-' Start from the AI's original in models/original/classes.puml, apply your accepted review
-' decisions, then render it to models/img/classes.png (or .svg). README section 6.
+@startuml
+title Course registration: domain model
+hide circle
+hide methods
+skinparam classAttributeIconSize 0
+
+class Student {
+  studentId : String {id}
+  name : String
+}
+
+class Course {
+  code : String {id}
+  title : String
+}
+
+class CourseOffering {
+  offeringId : String {id}
+  section : String
+  semester : String
+  capacity : Integer {capacity > 0}
+  /enrolledCount : Integer
+  /availablePlaces : Integer
+}
+
+class Enrollment {
+  enrollmentId : String {id}
+}
+
+Course "1" -- "0..*" CourseOffering : is scheduled as >
+Student "1" -- "0..*" Enrollment : holds >
+CourseOffering "1" -- "0..*" Enrollment : has >
+
+note right of CourseOffering
+  Default association end names:
+  student, courseOffering, enrollment.
+
+  Derived (R2, R4):
+    /enrolledCount = self.enrollment->size()
+      The number of Enrollments
+      linked to this offering.
+    /availablePlaces = capacity - enrolledCount
+      The capacity minus that number.
+  inv Capacity (R2):
+    enrolledCount <= capacity
+    (so 0 <= availablePlaces <= capacity)
+    An offering never has more
+    Enrollments than its capacity.
+end note
+
+note bottom of Enrollment
+  inv UniqueEnrollment (R3):
+    Enrollment.allInstances()->isUnique(
+      e | Tuple{s = e.student, o = e.courseOffering})
+  A student has at most one Enrollment
+  in the same course offering.
+end note
+@enduml

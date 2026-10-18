@@ -1,3 +1,72 @@
-' SIS #02 — your FINAL sequence diagram goes here, as PlantUML (@startuml … @enduml).
-' Start from the AI's original in models/original/sequence.puml, apply your accepted review
-' decisions, then render it to models/img/sequence.png (or .svg). README section 5.
+@startuml
+title Course registration: browse and register (R1–R5)
+autonumber
+skinparam sequenceMessageAlign left
+
+actor "Mira : Student" as S
+boundary "Catalog & Registration UI" as UI
+control "RegistrationService" as RS
+database "Registration Store" as DB
+
+== Browse catalog (R1, US-01) ==
+S -> UI : view catalog(Autumn 2026)
+UI -> RS : listOfferings(semester = Autumn 2026)
+RS -> DB : read offerings with course data\nand current enrollment counts
+DB --> RS : offering rows
+RS --> UI : [course code, title, offering, availablePlaces]
+UI --> S : show catalog\ne.g. INF-210 | Foundations of Data Modelling |\nSection A, Autumn 2026 | 18 places
+note right of UI
+  Viewing holds no place (AC-02).
+  The displayed figure may be stale
+  by the time the student registers.
+end note
+
+== Request registration (R2–R5, US-02 / US-03) ==
+S -> UI : register(Section A, Autumn 2026)
+UI -> RS : register(studentId, offeringId)
+
+critical Atomic operation: final checks + creation (R2, R3, R4)
+  RS -> DB : begin; lock offering
+  note right
+    Concurrent registrations for the same
+    offering are serialized here, so only one
+    request can take the last place (AC-04, R2).
+  end note
+  RS -> DB : find Enrollment(student, offering)
+  DB --> RS : alreadyEnrolled : Boolean
+  RS -> DB : read capacity, enrolledCount
+  DB --> RS : capacity, enrolledCount
+
+  alt already enrolled
+    RS -> RS : outcome = rejected("already enrolled")
+    RS -> DB : roll back (no writes); release lock
+    note right : R3, R5 / AC-06: nothing created,\ncount unchanged
+  else course full (not already enrolled and enrolledCount >= capacity)
+    RS -> RS : outcome = rejected("course full")
+    RS -> DB : roll back (no writes); release lock
+    note right : R2, R5 / AC-02, AC-05, losing side of AC-04:\nnothing created, count unchanged
+  else not already enrolled and places left
+    create entity "e : Enrollment" as E
+    RS -> E : create(student, offering)
+    RS -> DB : save(e)
+    RS -> DB : commit; release lock
+    RS -> RS : outcome = confirmation(e)
+    note right
+      R2, R4 / AC-03: places left means
+      enrolledCount < capacity; exactly one
+      Enrollment; enrolledCount + 1, so
+      availablePlaces decreases by 1.
+      Confirmation is produced only
+      after a successful commit.
+    end note
+  end
+
+  note over RS, DB
+    Any failure inside this operation (R4, R5) rolls back,
+    creates no Enrollment and confirms nothing.
+  end note
+end
+
+RS --> UI : outcome
+UI --> S : show confirmation\nor reason ("course full" | "already enrolled")
+@enduml
