@@ -11,7 +11,7 @@ live in `report.md`, section 11 — this file is the summary, not a second copy.
 | Claude (claude.ai) | Claude Opus 5.5 | Prompt B: first sequence and class diagrams | `models/original/sequence.puml`, `models/original/classes.puml`, §11 B2, §12 |
 | Claude (claude.ai), new chat | Claude Opus 5.5 | Prompt C: critique of both models | §11 B3; judged in §7 |
 | Claude (claude.ai), same chat as Prompt C | Claude Opus 5.5 | Prompt D: revision with my accepted decisions | §11 B4; `models/sequence.puml`, `models/classes.puml` (I changed guard 3 myself) |
-| Claude (claude.ai, separate helper chat) | Claude Opus 5.5 | Building the prompt texts with the material pasted in;  rendering the PlantUML files to PNG; drafting §1, §2 after review; translating my Russian notes for §6, §8 and §9 into English; preparing this file and `submission.yml`; |
+| Claude (claude.ai, separate helper chat) | Claude Opus 5.5 | Building the prompt texts with the material pasted in;  rendering the PlantUML files to PNG; drafting §1, §2 after review; preparing this file and `submission.yml`; |
 
 **Three parts of this assignment are yours alone. All three were written without AI assistance:** yes
 Section 10 (scope and initial assumptions) is mine: I wrote it before Prompt A and committed it in
