@@ -15,7 +15,7 @@ grader find your answers by them. Add rows to any table; never remove its header
 | --- | --- |
 | Tool | Bolt.new |
 | Exact model (as Bolt shows it, or `not displayed`) | not displayed |
-| Bolt project link (or `not shared`, and why) | BOLT_LINK |
+| Bolt project link (or `not shared`, and why) | https://bolt.new/p/72156204 |
 | Browser and version | Chrome BROWSER_VERSION |
 | If you could not use Bolt.new: the tool you used instead, and why | - (Bolt.new was used) |
 
@@ -28,8 +28,8 @@ Fill the first three columns now; fill the last one after Task 3.
 
 | # | What I expect to go wrong | AC it concerns | Was I right? (after Task 3) |
 | --- | --- | --- | --- |
-| 1 | v1 will use the computer's real clock instead of a current-time field, so I cannot supply 09:00 and T6 cannot be tested | AC1 | |
-| 2 | v1 will have no way to mark the selected room as blocked, so T3 cannot be tested | AC3 | |
+| 1 | v1 will use the computer's real clock instead of a current-time field, so I cannot supply 09:00 and T6 cannot be tested | AC1 | Yes. v1 shows "Current time baseline: 9:58 PM" from the real clock with only a "Refresh to real current time" link, so every daytime request was Unavailable and T6 was Not testable |
+| 2 | v1 will have no way to mark the selected room as blocked, so T3 cannot be tested | AC3 | No. v1's sample data has Room 303 marked as blocked ("Under maintenance until 6:00 PM"), so T3 could be set up |
 
 **The initial prompt exactly as I sent it** — the deck's prompt with AC1–AC6 pasted in place of
 `[paste AC1–AC6]`, nothing else changed:
@@ -43,17 +43,38 @@ Build a small responsive Smart Campus Room Availability Checker. Requirements: A
 ## 3. Task 2 — prototype v1
 
 v1 export saved in `original/` and screenshot saved as `evidence/v1.png` **before** any cleanup
-prompt: yes / no
+prompt: yes
 
 **Bolt's list of the files/components it created, pasted unedited:**
 
 ```text
-(paste here)
+Built the Smart Campus Room Availability Checker as a single responsive page using sample data only (no backend, auth, or analytics).
+
+**How it works**
+- Pick a room, a start time, and an end time. The page shows a clear **Available** or **Unavailable** decision with specific reasons when it's unavailable.
+- A visual timeline shows existing bookings and your requested interval side by side so you can see overlaps at a glance.
+- All six acceptance criteria are enforced: valid interval bounds, start after current time, max 120-minute bookings, blocked-room rejection, overlap detection (touching endpoints allowed), and read-only checks that never modify existing bookings. Layout adapts to mobile and desktop with inline validation feedback.
+
+**Main files created**
+- `src/lib/timeUtils.ts` — minute/label conversion helpers
+- `src/lib/roomsData.ts` — fictional rooms and bookings
+- `src/lib/validation.ts` — availability decision logic (AC1–AC5)
+- `src/components/Timeline.tsx` — day timeline with bookings + request overlay
+- `src/components/RoomChecker.tsx` — form, decision banner, bookings list
+- `src/App.tsx` — renders the checker
+
+The project builds successfully.
 ```
 
 **What v1 does — one line per thing that works, or visibly does not:**
 
--
+- Works: a room dropdown with four fictional rooms; Room 202 has the 10:00–11:00 booking the cases need, Room 303 is marked "(Blocked)".
+- Works: Start and End `HH:MM` inputs, a duration label and a timeline that draws the existing bookings and the request.
+- Works: a red "Unavailable" banner that lists every reason (e.g. "Start time must be earlier than end time.", "Booking cannot exceed 120 minutes.", "The requested interval overlaps an existing booking.").
+- Works: the existing-bookings list is read-only, with the note "Checking availability does not modify these bookings."
+- Does not work: the current time is always the real clock ("Current time baseline: 9:58 PM", only a "Refresh to real current time" link), so it cannot be supplied as 09:00 and every daytime request is Unavailable (AC1).
+- Does not work well: at narrow width the timeline hour labels run into each other ("12 AM2 AM4 AM6 AM8 AM10 AM…") (AC6).
+- The End input is an `HH:MM` time input, so 24:00 cannot be entered although AC1 allows end = 1440.
 
 **Repair prompt** (only if the first build did not run — the deck allows one, then the result is
 v1). Leave empty if you did not need it:
@@ -72,15 +93,15 @@ no way to set up the case). Save each final run as `evidence/final-T<n>.png`.
 
 | # | Case | What you set up and request | Expected | AC | Result on v1 | Result on final | Final screenshot |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| T1 | Touching | 11:00–12:00 | Available | AC4 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T1.png |
-| T2 | Overlap | 10:30–11:30 | Unavailable | AC4 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T2.png |
-| T3 | Blocked | 11:00–12:00, room blocked | Unavailable | AC3 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T3.png |
-| T4 | Exactly 2 hours | 12:00–14:00 | Available | AC2 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T4.png |
-| T5 | Over 2 hours | 12:00–14:01 | Unavailable | AC2 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T5.png |
-| T6 | Starts now | 09:00–09:30 (current time 09:00) | Unavailable | AC1 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T6.png |
-| T7 | Reversed times | 12:00–11:00, and the page says why | Unavailable | AC1, AC6 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T7.png |
-| T8 | Same check twice | T1, then T1 again without reloading | Available | AC5 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T8.png |
-| T9 | Narrow screen | T1 at about 375 px wide | Available | AC6 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T9.png |
+| T1 | Touching | 11:00–12:00 | Available | AC4 | Unavailable | FINAL_T1 | final-T1.png |
+| T2 | Overlap | 10:30–11:30 | Unavailable | AC4 | Unavailable | FINAL_T2 | final-T2.png |
+| T3 | Blocked | 11:00–12:00, room blocked | Unavailable | AC3 | Unavailable | FINAL_T3 | final-T3.png |
+| T4 | Exactly 2 hours | 12:00–14:00 | Available | AC2 | Unavailable | FINAL_T4 | final-T4.png |
+| T5 | Over 2 hours | 12:00–14:01 | Unavailable | AC2 | Unavailable | FINAL_T5 | final-T5.png |
+| T6 | Starts now | 09:00–09:30 (current time 09:00) | Unavailable | AC1 | Not testable | FINAL_T6 | final-T6.png |
+| T7 | Reversed times | 12:00–11:00, and the page says why | Unavailable | AC1, AC6 | Unavailable | FINAL_T7 | final-T7.png |
+| T8 | Same check twice | T1, then T1 again without reloading | Available | AC5 | Unavailable | FINAL_T8 | final-T8.png |
+| T9 | Narrow screen | T1 at about 375 px wide | Available | AC6 | Unavailable | FINAL_T9 | final-T9.png |
 
 ---
 
@@ -93,8 +114,8 @@ log a justified cleanup that preserves behaviour. Save a screenshot of each as
 
 | # | Issue | Evidence: steps → expected → observed | Priority | Decision |
 | --- | --- | --- | --- | --- |
-| 1 | | | High / Medium / Low | Fix / Reject / Defer |
-| 2 | | | High / Medium / Low | Fix / Reject / Defer |
+| 1 | Functional (AC1): the current time cannot be supplied; v1 always uses the real clock | Room 202, Start 11:00, End 12:00 (case T1) → expected Available with the current time 09:00 → observed "Unavailable · Start time must be after the current time." with "Current time baseline: 9:58 PM" and no input to change it. The same reason blocks T1, T4, T8, T9, and T6 is Not testable (`evidence/issue-1.png`) | High | Fix |
+| 2 | Usability (AC6): timeline hour labels overlap at narrow width | Room 202, 11:00–12:00, browser window about 460 px wide (case T9) → expected a readable timeline on a narrow screen → observed the axis labels run together as "12 AM2 AM4 AM6 AM8 AM10 AM2 PM2 PM4 PM…" and cannot be read (`evidence/issue-2.png`) | Medium | Fix |
 
 ---
 
