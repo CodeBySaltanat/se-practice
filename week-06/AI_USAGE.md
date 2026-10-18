@@ -6,22 +6,21 @@ including anything an AI tool produced.
 
 | Tool | Exact model / plan | Used for | Which files it touched |
 | --- | --- | --- | --- |
-| Bolt.new | | prototype v1 (Task 2) | |
-| Bolt.new | | cleanup prompts (Task 4) | |
-| | | | |
+| Bolt.new | model not displayed (free plan) | Generating v1 from the initial prompt | `original/project/` |
+| Bolt.new | model not displayed (free plan) | Fix prompt 1 (supplied current time), cleanup prompt 2 (timeline labels), cleanup prompt 3 (unused Supabase dependency) | `prototype/project/` (`src/components/RoomChecker.tsx`, `src/components/Timeline.tsx`, `package.json`) |
+| Claude (claude.ai, separate helper chat) | Claude Opus 5.5 | preparing this file and `submission.yml` | `AI_USAGE.md`, `submission.yml` |
 
-**I used another assistant as well (to explain code, to draft text in lab-report.md, …):** yes / no
-<!-- If "yes": which one, the exact model, and for which section. -->
+**Bolt.new was available to me:** yes — no fallback tool was used.
 
-**`original/` holds Bolt's first version exactly as downloaded, and `evidence/v1.png` shows it:** yes / no
+**I ran every case myself in the page, and every screenshot in `evidence/` is an unedited capture:** yes
 
-**Every screenshot in `evidence/` is an unedited capture of the page as it behaved:** yes / no
+**`original/` holds Bolt's first version exactly as downloaded, saved before any cleanup prompt:** yes
 
-**I can explain the component I chose in lab-report.md section 8 — and how the page decides
-availability — without the assistant:** yes / no
+**Everything I submitted, I can explain and defend in class — including the component in §8:** yes
 
 **Anything I accepted from the AI without fully understanding it:**
-<!-- Name the file and the part. An honest entry here costs far less than a blank one that turns out to be untrue. -->
+The React details of `RoomChecker.tsx` (hooks such as `useMemo`). I understand what the page does
+and how `validation.ts` decides, but not every React detail. 
 
-Signed: <your name>
-Date:
+Signed: Saltanat Sultanakhmet
+Date: 2026-10-18
