@@ -1,0 +1,44 @@
+# week-05/submission.yml — your declaration for this lab.
+schema: 1
+week: "05"
+
+student:
+  name: Saltanat Sultanakhmet
+  student_id: 24B032036
+  github: CodeBySaltanat
+
+assistant:
+  tool: Claude
+  model: Claude Sonnet 5.5
+
+language:
+  name: python
+  path: A
+
+counts:
+  tests: 25
+  v1_changed: no
+  change_log_rows: 1
+
+checker:
+  pass: 32
+  fail: 0
+  error: 0
+  commit: 5410b4e
+  known_fails: []
+
+assumptions:
+  non_integer_time: not-handled
+
+carried:
+  week04_touching: not-submitted
+
+review_findings:
+  - "v1: if start < e and s < end is strict on both sides, so touching bookings pass AC4 (test_touching_end_is_allowed, test_touching_start_is_allowed)"
+  - "AC1: can_book(1439, 1440, 1439, False, []) is False because start > now cannot hold when now=1439; added test_nothing_can_be_booked_when_now_is_last_minute, v1 needed no change"
+  - "critique point on the contract line 'Times are integer minutes' (no type check) rejected: no AC asks for it and AC5 allows only True/False, see lab-report 9.2"
+
+honesty:
+  v1_unedited: yes
+  can_explain_overlap_without_ai: yes
+  ai_usage_disclosed: yes
