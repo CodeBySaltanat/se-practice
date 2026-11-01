@@ -1,0 +1,62 @@
+# SIS #03 — the declaration. FACTS ONLY: every explanation stays in report.md.
+#
+# Fill this in LAST, after your final run of the checker, then validate it:
+#     python tests/check_sis.py
+#     python tests/validate_submission.py
+#
+# Your checker numbers are re-run by the instructor at the head of your pull request.
+# Numbers that do not match what that commit produces cost the whole workflow criterion.
+# A FAIL you report honestly — here and under known_fails — costs nothing extra.
+#
+# Format rules: two spaces for indentation, never tabs. Leave the keys exactly as they are.
+
+schema: 1
+assignment: "sis-03"            # do not edit
+
+student:
+  name: Saltanat Sultanakhmet
+  student_id: "24B032036"
+  group: Monday 16:00-19:00
+  github: CodeBySaltanat
+
+assistant:
+  tool: Claude.ai
+  model: Claude Opus 5.5
+
+bolt:
+  model: not displayed
+  project_url: https://bolt.new/p/72156204
+
+language:
+  name: python
+  path: A
+
+reuse:                          # exactly as in report.md section 1
+  python_v1: fresh
+  web_v1: week-06
+
+checker:                        # from your LAST run of python tests/check_sis.py
+  pass: 55
+  fail: 0
+  error: 0
+  commit: 9b20c14
+
+counts:                         # the validator re-measures every one
+  tests: 17
+  exchanges: 6
+  issues: 2
+  critique_decisions: 5
+  reflection_words: 187
+
+cases:                          # from report.md section 5
+  python_final_matches: 11
+  page_final_matches: 11
+
+known_fails: []                 # the ID of every check still FAIL or ERROR in your last run,
+                                # e.g. [C4, X4] — each explained in report.md section 13. [] when clean.
+
+honesty:
+  v1_unedited: yes
+  screenshots_unedited: yes
+  results_observed: yes
+  ai_usage_disclosed: yes
