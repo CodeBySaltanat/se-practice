@@ -24,11 +24,13 @@ export default function RoomChecker() {
   const [roomId, setRoomId] = useState<string>(rooms[0].id);
   const [startStr, setStartStr] = useState('');
   const [endStr, setEndStr] = useState('');
+  const [endAtMidnight, setEndAtMidnight] = useState(false);
   const [nowMin, setNowMin] = useState<number>(nowInMinutes());
 
   const room: Room = useMemo(() => rooms.find((r) => r.id === roomId)!, [roomId]);
   const start = timeInput(startStr);
-  const end = timeInput(endStr);
+  const endInput = timeInput(endStr);
+  const end = endAtMidnight ? MINUTES_PER_DAY : endInput;
 
   const decision = useMemo(
     () => evaluateAvailability(room, start ?? -1, end ?? -1, nowMin),
@@ -97,10 +99,20 @@ export default function RoomChecker() {
               <label className="block text-sm font-medium text-slate-700 mb-1">End</label>
               <input
                 type="time"
-                value={toInputValue(end)}
+                value={toInputValue(endInput)}
+                disabled={endAtMidnight}
                 onChange={(e) => setEndStr(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100 disabled:text-slate-400"
               />
+              <label className="mt-2 flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={endAtMidnight}
+                  onChange={(e) => setEndAtMidnight(e.target.checked)}
+                  className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                />
+                Until midnight (24:00)
+              </label>
             </div>
           </div>
 

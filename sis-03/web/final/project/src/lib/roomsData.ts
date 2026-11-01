@@ -58,4 +58,15 @@ export const rooms: Room[] = [
       { id: 'b5', start: 720, end: 780, bookedBy: 'Mr. Chen', purpose: 'Seminar' },
     ],
   },
+  {
+    id: 'r5',
+    name: 'Room 505',
+    building: 'Arts Annex',
+    capacity: 25,
+    blocked: false,
+    bookings: [
+      { id: 'b6', start: 600, end: 660, bookedBy: 'Ms. Okafor', purpose: 'Studio Critique' },
+      { id: 'b7', start: 700, end: 760, bookedBy: 'Dr. Novak', purpose: 'Design Seminar' },
+    ],
+  },
 ];
