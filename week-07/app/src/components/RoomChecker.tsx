@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Building2, Clock, CalendarClock, CheckCircle2, XCircle, Users, Ban } from 'lucide-react';
 import { rooms, type Room } from '@/lib/roomsData';
 import { evaluateAvailability } from '@/lib/validation';
+import { canBook } from '../booking';
 import { minutesToLabel, rangeLabel, nowInMinutes, durationLabel, MINUTES_PER_DAY } from '@/lib/timeUtils';
 import Timeline from './Timeline';
 
@@ -30,10 +31,21 @@ export default function RoomChecker() {
   const start = timeInput(startStr);
   const end = timeInput(endStr);
 
-  const decision = useMemo(
-    () => evaluateAvailability(room, start ?? -1, end ?? -1, nowMin),
-    [room, start, end, nowMin],
-  );
+  const decision = useMemo(() => {
+    // the decision itself comes from canBook; validation.ts only supplies the reasons shown on the page
+    const available = canBook({
+      start: start ?? -1,
+      end: end ?? -1,
+      now: nowMin,
+      blocked: room.blocked,
+      bookings: room.bookings,
+    });
+    if (available) return { status: 'available' as const };
+    const checked = evaluateAvailability(room, start ?? -1, end ?? -1, nowMin);
+    return checked.status === 'unavailable'
+      ? checked
+      : { status: 'unavailable' as const, reasons: ['This time is not available.'] };
+  }, [room, start, end, nowMin]);
 
   const showDecision = start !== null && end !== null;
   const duration = start !== null && end !== null ? end - start : 0;
