@@ -102,3 +102,16 @@ describe('canBook - added after the review (from the improvement answer)', () =>
     expect(bookings).toEqual([{ start: 600, end: 660 }]);
   });
 });
+
+describe('canBook - Practice #08 regression tests', () => {
+  test('BUG-A AC4: 660-700 touches a booking on both sides and is Available', () => {
+    const req = input(660, 700, { bookings: [{ start: 600, end: 660 }, { start: 700, end: 760 }] });
+    expect(canBook(req)).toBe(true);
+  });
+  test('BUG-B AC5: 720-780 touches nothing, is Available and leaves the bookings unchanged', () => {
+    const req = input(720, 780);
+    const before = structuredClone(req.bookings);
+    expect(canBook(req)).toBe(true);
+    expect(req.bookings).toEqual(before);
+  });
+});
