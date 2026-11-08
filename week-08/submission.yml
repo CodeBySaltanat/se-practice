@@ -1,0 +1,51 @@
+# week-08/submission.yml — your declaration for this lab.
+#
+# Facts only. Every explanation goes in lab-report.md; nothing here repeats prose.
+
+schema: 1
+week: "08"
+
+student:
+  name: Saltanat Sultanakhmet
+  student_id: 24B032036
+  github: CodeBySaltanat
+
+assistant:
+  tool: Claude
+  model: Claude Opus 5.5
+
+skill:
+  environment: prompt-only
+  invoked: not-shown
+
+project:
+  language: ts
+  vitest: 2.1.9
+
+counts:
+  tests_final: 26
+  buggy_failed: 5
+  defects_logged: 2
+  lines_changed: 2
+
+checker:
+  pass: 31
+  fail: 0
+  error: 0
+  commit: bec34ba
+  known_fails: []
+
+verdict:
+  skill_helped: no-difference
+
+review_findings:
+  - "BUG-A: both answers named the <= / >= line from the T01 failure; the fix to < / > made T01, T08 and BUG-A pass while T09-T12 still reject overlaps"
+  - "BUG-B: the Week 07 AC5 test (660-720) failed for the wrong reason until BUG-A was fixed - the request was rejected before the push; only the BUG-B test on 720-780 failed for the push"
+  - "Skill step 4: the skill answer labelled the shared-fixture idea as a hypothesis, but still called both defects confirmed from a plain-JS copy it ran, not from my Vitest suite"
+  - "No-skill answer: its patch put both fixes in one diff and its AC5 test used a touching request (660-720), so BUG-A would hide BUG-B"
+
+honesty:
+  buggy_function_pasted_unchanged: yes
+  same_input_both_chats: yes
+  outputs_unedited: yes
+  ai_usage_disclosed: no
