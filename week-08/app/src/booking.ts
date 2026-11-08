@@ -8,15 +8,16 @@ export function canBook({ start, end, now, blocked, bookings }: {
   end: number;
   now: number;
   blocked: boolean;
-  bookings: Interval[];
+  bookings: { start: number; end: number }[];
 }): boolean {
-  if (!(Number.isFinite(start) && Number.isFinite(end))) return false;
-  if (start < 0 || start >= 1440) return false;
-  if (end < 0 || end > 1440) return false;
-  if (start >= end) return false;
-  if (start <= now) return false;
+  if (!(0 <= start && start < end && end <= 1440)) return false;
+  if (!(start > now)) return false;
   if (end - start > 120) return false;
   if (blocked) return false;
-  if (bookings.some((b) => start < b.end && b.start < end)) return false;
+  for (const b of bookings) {
+    if (start <= b.end && end >= b.start) return false;
+  }
+  // keep the room's list current with the slot that was just found free
+  bookings.push({ start, end });
   return true;
 }
