@@ -32,7 +32,7 @@ checker:
   pass: 31
   fail: 0
   error: 0
-  commit: HASH
+  commit: bec34ba
   known_fails: []
 
 verdict:
