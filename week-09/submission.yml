@@ -23,7 +23,7 @@ checker:
   pass: 30
   fail: 0
   error: 0
-  commit: HASH
+  commit: 6d0e7e0
   known_fails: []
 
 review_findings:
