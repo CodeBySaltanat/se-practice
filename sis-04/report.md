@@ -14,13 +14,13 @@
 
 | Item | Value |
 | --- | --- |
-| Assistant (tool) | (write here) |
-| Assistant model | (write here) |
-| Starting point | (write here) |
-| Baseline commit | (write here) |
-| Language (ts or js) | (write here) |
-| Vitest version | (write here) |
-| Where I ran the tests | (write here) |
+| Assistant (tool) | Claude (claude.ai web) |
+| Assistant model | Claude Opus 5.5 |
+| Starting point | week-08 |
+| Baseline commit | 78cb2c0 |
+| Language (ts or js) | ts |
+| Vitest version | 2.1.9 |
+| Where I ran the tests | my computer (Windows 11, cmd, Node + npm) |
 
 ### 1.1 Baseline run
 
@@ -29,7 +29,63 @@
      "No test files found". That is your honest "original" number, 0/0. -->
 
 ```text
-(paste here)
+C:\Users\sulta\se-practice\sis-04\app>npx vitest run
+
+ RUN  v2.1.9 C:/Users/sulta/se-practice/sis-04/app
+
+     ✓ T01 AC4: 660-720 touching after the bo
+oking is allowed
+     ✓ T02 AC1: 540-570 starts exactly now
+     ✓ T03 AC1: 720-720 zero duration
+     ✓ T04 AC1: 750-720 reversed
+     ✓ T05 AC1: 1380-1441 past the end of the
+ day
+     ✓ T06 AC2: 720-840 exactly 120 minutes i
+s allowed
+     ✓ T07 AC2: 720-841 is 121 minutes
+     ✓ T08 AC4: 570-600 touching before the b
+ooking is allowed
+     ✓ T09 AC4: 630-690 partial overlap
+     ✓ T10 AC4: 570-690 contains the booking
+     ✓ T11 AC4: 615-645 inside the booking
+     ✓ T12 AC4: 600-660 identical interval
+     ✓ T13 AC3: 660-720 in a blocked room
+ ✓ src/booking.test.ts (26)
+   ✓ canBook - the case plan T01-T14 (14)
+     ✓ T01 AC4: 660-720 touching after the booking is allowed
+     ✓ T02 AC1: 540-570 starts exactly now
+     ✓ T03 AC1: 720-720 zero duration
+     ✓ T04 AC1: 750-720 reversed
+     ✓ T05 AC1: 1380-1441 past the end of the day
+     ✓ T06 AC2: 720-840 exactly 120 minutes is allowed
+     ✓ T07 AC2: 720-841 is 121 minutes
+     ✓ T08 AC4: 570-600 touching before the booking is allowed
+     ✓ T09 AC4: 630-690 partial overlap
+     ✓ T10 AC4: 570-690 contains the booking
+     ✓ T11 AC4: 615-645 inside the booking
+     ✓ T12 AC4: 600-660 identical interval
+     ✓ T13 AC3: 660-720 in a blocked room
+     ✓ T14 AC4: 630-690 with no bookings
+   ✓ canBook - AC5 and my own cases (3)
+     ✓ AC5: an Available request leaves the bookings equal to before
+     ✓ X1 AC1: 1380-1440 ends exactly at 24:00
+     ✓ X2 AC4: 720-780 overlaps the second of two bookings
+   ✓ canBook - added after the review (from the improvement answer) (7)
+     ✓ N01 AC1: 541-570 one minute after now is allowed
+     ✓ N02 AC1: 480-510 starts before now
+     ✓ N03 AC4: 659-720 one-minute overlap at the end of the booking
+     ✓ N04 AC4: 570-601 one-minute overlap at the start of the booking
+     ✓ N05 AC4: 630-690 overlaps the first of two bookings
+     ✓ N06 AC5: unsorted bookings stay in their order after an Available request
+     ✓ N07 AC5: frozen bookings - an Available call writes nothing (a write would throw)
+   ✓ canBook - Practice #08 regression tests (2)
+     ✓ BUG-A AC4: 660-700 touches a booking on both sides and is Available
+     ✓ BUG-B AC5: 720-780 touches nothing, is Available and leaves the bookings unchanged
+
+ Test Files  1 passed (1)
+      Tests  26 passed (26)
+   Start at  16:46:58
+   Duration  1.30s (transform 36ms, setup 0ms, collect 62ms, tests 3ms, environment 0ms, prepare 135ms)
 ```
 
 ## 2. Context for the assistant
@@ -40,7 +96,15 @@
      they do. A tree is fine:  src/App.tsx — the page, holds the rooms and the form … -->
 
 ```text
-(paste here)
+sis-04/app/src
+- App.tsx - renders <RoomChecker />, nothing else.
+- components/RoomChecker.tsx - the whole page: imports the rooms array, holds the selected room, start/end/now as state, parses "HH:MM" inputs (timeInput, toInputValue), calls canBook for the decision and evaluateAvailability for the reasons, renders the form, the result banner and the list of bookings.
+- components/Timeline.tsx - draws the day as a bar with the room's bookings and the requested interval.
+- booking.ts - canBook({ start, end, now, blocked, bookings }): boolean. The tested rule function (AC1-AC5). Strict overlap, 120-minute limit, no mutation.
+- booking.test.ts - 26 Vitest tests for canBook only (T01-T14, X1, X2, N01-N07, AC5, BUG-A, BUG-B). All pass.
+- lib/validation.ts - evaluateAvailability(room, start, end, currentTime) returns available or a list of reason strings; overlapsExisting(); MAX_BOOKING_MINUTES = 120.
+- lib/roomsData.ts - Room and Booking interfaces and 4 fictional rooms (id, name, building, capacity, blocked, blockedReason, bookings with id/bookedBy/purpose). No equipment field.
+- lib/timeUtils.ts - MINUTES_PER_DAY, minutesToLabel, rangeLabel, durationLabel, nowInMinutes() (reads the real clock).
 ```
 
 ### 2.2 The context message as sent
@@ -49,7 +113,46 @@
      (no login, payments, live APIs or database; fictional data only). Unedited. -->
 
 ```text
-(paste here)
+I am extending a small React + TypeScript app (Vite, Vitest 2.1.9). Please analyse it before any code is written.
+
+REPOSITORY MAP (sis-04/app/src)
+- App.tsx - renders <RoomChecker />, nothing else.
+- components/RoomChecker.tsx - the whole page: imports the rooms array, holds the selected room, start/end/now as state, parses "HH:MM" inputs (timeInput, toInputValue), calls canBook for the decision and evaluateAvailability for the reasons, renders the form, the result banner and the list of bookings.
+- components/Timeline.tsx - draws the day as a bar with the room's bookings and the requested interval.
+- booking.ts - canBook({ start, end, now, blocked, bookings }): boolean. The tested rule function (AC1-AC5). Strict overlap, 120-minute limit, no mutation.
+- booking.test.ts - 26 Vitest tests for canBook only (T01-T14, X1, X2, N01-N07, AC5, BUG-A, BUG-B). All pass.
+- lib/validation.ts - evaluateAvailability(room, start, end, currentTime) returns available or a list of reason strings; overlapsExisting(); MAX_BOOKING_MINUTES = 120.
+- lib/roomsData.ts - Room and Booking interfaces and 4 fictional rooms (id, name, building, capacity, blocked, blockedReason, bookings with id/bookedBy/purpose). No equipment field.
+- lib/timeUtils.ts - MINUTES_PER_DAY, minutesToLabel, rangeLabel, durationLabel, nowInMinutes() (reads the real clock).
+
+REQUIREMENTS THAT MUST KEEP HOLDING
+AC1 Reject start >= end and requests in the past.
+AC2 Enforce the maximum allowed duration (120 minutes).
+AC3 Reject a blocked room.
+AC4 Reject overlaps; allow bookings that only touch at endpoints.
+AC5 Return Available / Unavailable without changing booking data.
+AC6 Clear, responsive feedback on desktop and mobile.
+
+NEW FEATURE: ROOM SELECTION (a catalog of at least four rooms; each room has id, name, capacity, equipment list, blocked status and its own bookings; show only the rooms that satisfy the user's requirements; the availability check must use the chosen room's bookings, not another room's data)
+F1 Capacity filter: room capacity must be greater than or equal to the requested attendees.
+F2 Equipment filter: the room must contain ALL selected required items.
+F3 A blocked room cannot be reported as available.
+F4 Show a clear empty state when no rooms match.
+F5 Changing the selected room must refresh the availability result appropriately.
+
+TARGET LAYOUT (fixed by the assignment)
+src/rooms.ts - Room type { id, name, capacity, equipment: string[], blocked, bookings: {start, end}[] } and ROOMS (data only)
+src/filter.ts - filterRooms(rooms, { attendees, equipment }): Room[]  (F1, F2)
+src/booking.ts - canBook (unchanged) + checkRoom(rooms, roomId, { start, end, now }): boolean, which calls canBook with the chosen room's blocked and bookings (F3, F5)
+UI components import these rules and hold no room data and no rule of their own.
+
+CONSTRAINTS
+No login, no payments, no live APIs, no database, no network calls, no browser storage. Fictional data only. A fixed current time is fine.
+
+WHAT I NEED FROM YOU
+1. The maintainability risks you see in this code, each with the file and function it is in, and why it is a risk. At least three.
+2. A prioritised plan of small, safe steps (smallest first) to add the feature and reach the target layout while canBook's 26 tests stay green after every step.
+Please give a plan, not a full rewrite, and no code yet.
 ```
 
 ## 3. Codebase analysis (Task 1)
@@ -62,24 +165,31 @@
 
 | # | Risk | Where (file / function) | Evidence | Priority |
 | --- | --- | --- | --- | --- |
-| 1 | (write here) | (write here) | (write here) | High / Medium / Low |
-| 2 | (write here) | (write here) | (write here) | High / Medium / Low |
-| 3 | (write here) | (write here) | (write here) | High / Medium / Low |
+| 1 | The booking rules exist twice: the verdict comes from one copy, the reasons from another, and only one copy is tested | `src/booking.ts` `canBook()` and `src/lib/validation.ts` `evaluateAvailability()`, `overlapsExisting()` | `canBook` checks `end - start > 120` and `start < b.end && end > b.start`; `validation.ts` repeats them as `MAX_BOOKING_MINUTES = 120` and `start < b.end && b.start < end`. `RoomChecker` has a fallback reason "This time is not available." for when the two disagree. `booking.test.ts` imports only `canBook`. | High |
+| 2 | The page holds room data and logic of its own | `src/components/RoomChecker.tsx` (imports `rooms`, `timeInput()`, `toInputValue()`, the decision `useMemo`) | `import { rooms } from '@/lib/roomsData'`; it parses "HH:MM" itself and decides what to show by combining `canBook` and `evaluateAvailability`. None of it is tested. | High |
+| 3 | The room model has no equipment, so F2 cannot be built on it | `src/lib/roomsData.ts` `Room`, `Booking` | `Room` has `id, name, building, capacity, blocked, blockedReason?, bookings` - no `equipment`. Bookings carry `id, bookedBy, purpose`, which the target type does not have. | High |
+| 4 | The selected room is asserted to exist | `src/components/RoomChecker.tsx` `rooms.find((r) => r.id === roomId)!` | With a filter, the selected id can drop out of the list; the `!` hides `undefined`, and `room.blocked` would then throw. | Medium |
+| 5 | The current time comes from the real clock | `src/lib/timeUtils.ts` `nowInMinutes()`, used as the initial state in `RoomChecker` | `useState<number>(nowInMinutes())`, so the same request can be Available in the morning and Unavailable in the afternoon, and screenshots are not repeatable. | Medium |
 
 ### 3.2 Improvement plan — before editing
 
 <!-- Numbered, in the order you will do it, smallest safe step first. Written BEFORE you change
      code: the commit that adds this section comes before the commit that changes app/src. -->
 
-1. (write here)
-2. (write here)
-3. (write here)
+1. Add `src/rooms.ts` with the target `Room` type (`id, name, capacity, equipment, blocked, bookings`) and `ROOMS`: five fictional rooms, one blocked. Nothing imports it yet; the 26 tests stay green.
+2. Add `src/filter.ts` `filterRooms()` test-first: F1 (capacity >= attendees, B5, B6), F2 (ALL selected items), F4 (no match gives `[]`).
+3. Add `checkRoom()` to `src/booking.ts` below `canBook`, test-first: it finds the room by id and calls `canBook` with that room's own `blocked` and `bookings` (F3, F5); an unknown id is not available; nothing changes (AC5). `canBook` itself is not edited.
+4. Wire `RoomChecker` to `ROOMS` and `checkRoom`: keep only the selected id, no `rooms.find(...)!` (a missing room shows "Select a room" and is not checked), and a fixed current time instead of `nowInMinutes()` (risks 4, 5).
+5. Add the filter controls (attendees, equipment) and the empty state (F4); if the selected room is filtered out, clear the selection (F5).
+6. Remove the duplicated rules: `canBook` gives the only verdict; `validation.ts` keeps only the reason texts, with a test that ties its 120 to `canBook` (119, 120, 121 minutes) (risk 1, modified AI step 9).
+7. Move time parsing out of the page into `src/lib/timeUtils.ts`, delete `src/lib/roomsData.ts`, point `Timeline` at the new `Room` type (risks 2, 3).
+8. Add the INT test (`filterRooms` then `checkRoom`), the before/after diagrams, the screenshots, and check AC6 at phone width.
 
 ### 3.3 One AI suggestion I rejected or modified
 
 | Suggestion (as the assistant made it) | Decision | Why — with the AC, F-rule, test or file behind it |
 | --- | --- | --- |
-| (write here) | Rejected / Modified | (write here) |
+| Step 9 of the first plan: "Make `evaluateAvailability` import the limit from `booking.ts` rather than defining its own", while the plan also says "`canBook` and its 26 tests are never edited". | Modified | The second version is better, because `canBook` stays the only tested and untouched reference, and a drift between the two copies of 120 is still caught by a test on 119, 120 and 121 minutes - the same safety, without editing code the plan promised not to touch. In `src/booking.ts` the 120 is a literal inside `canBook` (`if (end - start > 120) return false;`), not an exported constant, so the import would have meant editing the tested function. |
 
 ## 4. Feature extension (Task 2)
 
@@ -200,47 +310,196 @@
 
 ### 8.1 Exchange 1
 
-**Tool and model:** (write here)
-**Date:** (write here)
-**Purpose:** (write here)
+**Tool and model:** Claude (claude.ai web), Claude Opus 5.5
+**Date:** 2026-11-16
+**Purpose:** Task 1 analysis: maintainability risks with file/function references and a plan of small steps (one fresh chat, the context message from 2.2).
 
 **Prompt:**
 
 ```text
-(paste here)
+I am extending a small React + TypeScript app (Vite, Vitest 2.1.9). Please analyse it before any code is written.
+
+REPOSITORY MAP (sis-04/app/src)
+- App.tsx - renders <RoomChecker />, nothing else.
+- components/RoomChecker.tsx - the whole page: imports the rooms array, holds the selected room, start/end/now as state, parses "HH:MM" inputs (timeInput, toInputValue), calls canBook for the decision and evaluateAvailability for the reasons, renders the form, the result banner and the list of bookings.
+- components/Timeline.tsx - draws the day as a bar with the room's bookings and the requested interval.
+- booking.ts - canBook({ start, end, now, blocked, bookings }): boolean. The tested rule function (AC1-AC5). Strict overlap, 120-minute limit, no mutation.
+- booking.test.ts - 26 Vitest tests for canBook only (T01-T14, X1, X2, N01-N07, AC5, BUG-A, BUG-B). All pass.
+- lib/validation.ts - evaluateAvailability(room, start, end, currentTime) returns available or a list of reason strings; overlapsExisting(); MAX_BOOKING_MINUTES = 120.
+- lib/roomsData.ts - Room and Booking interfaces and 4 fictional rooms (id, name, building, capacity, blocked, blockedReason, bookings with id/bookedBy/purpose). No equipment field.
+- lib/timeUtils.ts - MINUTES_PER_DAY, minutesToLabel, rangeLabel, durationLabel, nowInMinutes() (reads the real clock).
+
+REQUIREMENTS THAT MUST KEEP HOLDING
+AC1 Reject start >= end and requests in the past.
+AC2 Enforce the maximum allowed duration (120 minutes).
+AC3 Reject a blocked room.
+AC4 Reject overlaps; allow bookings that only touch at endpoints.
+AC5 Return Available / Unavailable without changing booking data.
+AC6 Clear, responsive feedback on desktop and mobile.
+
+NEW FEATURE: ROOM SELECTION (a catalog of at least four rooms; each room has id, name, capacity, equipment list, blocked status and its own bookings; show only the rooms that satisfy the user's requirements; the availability check must use the chosen room's bookings, not another room's data)
+F1 Capacity filter: room capacity must be greater than or equal to the requested attendees.
+F2 Equipment filter: the room must contain ALL selected required items.
+F3 A blocked room cannot be reported as available.
+F4 Show a clear empty state when no rooms match.
+F5 Changing the selected room must refresh the availability result appropriately.
+
+TARGET LAYOUT (fixed by the assignment)
+src/rooms.ts - Room type { id, name, capacity, equipment: string[], blocked, bookings: {start, end}[] } and ROOMS (data only)
+src/filter.ts - filterRooms(rooms, { attendees, equipment }): Room[]  (F1, F2)
+src/booking.ts - canBook (unchanged) + checkRoom(rooms, roomId, { start, end, now }): boolean, which calls canBook with the chosen room's blocked and bookings (F3, F5)
+UI components import these rules and hold no room data and no rule of their own.
+
+CONSTRAINTS
+No login, no payments, no live APIs, no database, no network calls, no browser storage. Fictional data only. A fixed current time is fine.
+
+WHAT I NEED FROM YOU
+1. The maintainability risks you see in this code, each with the file and function it is in, and why it is a risk. At least three.
+2. A prioritised plan of small, safe steps (smallest first) to add the feature and reach the target layout while canBook's 26 tests stay green after every step.
+Please give a plan, not a full rewrite, and no code yet.
 ```
 
-**Output used:**
+**Output used:** (unedited; the answer's own code fences are written as `~~~` and its heading lines are indented by one space, so they do not break this report's sections)
 
 ```text
-(paste here)
+This analysis is based on the repository map you gave, not the source files, so a few points are marked **verify** where the risk depends on how a function is actually written.
+
+ ## 1. Maintainability risks
+
+**R1. Two separate implementations of the booking rules.** *(`booking.ts` → `canBook`; `lib/validation.ts` → `evaluateAvailability`, `overlapsExisting`, `MAX_BOOKING_MINUTES`)*
+`RoomChecker` gets the verdict from `canBook` and the reasons from `evaluateAvailability`. These are two independent copies of AC1–AC4. Only `canBook` is tested. If the two drift apart, the banner can say "Available" while listing a reason, or the reverse. Boundary rules are the most likely place for drift, such as strict overlap or `>` versus `>=` 120. Your BUG-A and BUG-B tests suggest this has already happened once. The 120 limit probably also exists twice, as a literal in `booking.ts` and as the constant in `validation.ts` (**verify**).
+
+**R2. `RoomChecker.tsx` is a god component that holds data and rules.** *(`RoomChecker` and its inline `timeInput` / `toInputValue`)*
+It imports the rooms array directly and parses "HH:MM" itself. It also owns the selection, the times and the result rendering. None of that is tested. The parsing deserves particular care. If an empty or malformed input becomes `NaN`, every comparison in `canBook` is false: `NaN >= end`, `NaN < now`, `NaN > 120` and the overlap test all fail. The function could then return `true` for garbage input (**verify** how `timeInput` handles `""`, `"24:00"` and `"9:5"`). This also directly breaks the target rule that "UI holds no room data and no rule".
+
+**R3. Selection may not be tied to a room id.** *(`RoomChecker` selected-room state)*
+The selection might be stored as an array index or as a copied room object. Once filtering changes what is in the list, an index can point to a different room, and a copied object can go stale. Either way you get the failure the brief warns about: checking availability against another room's bookings. This is also the main risk for F5 (**verify** what the state holds).
+
+**R4. A hidden dependency on the real clock.** *(`lib/timeUtils.ts` → `nowInMinutes()`, used to seed `now` in `RoomChecker` and possibly inside `evaluateAvailability`)*
+AC1's "in the past" rule then depends on the time of day the app or a test runs. Results become non-reproducible: the same input can be "Available" at 09:00 and "Unavailable" at 15:00, and any future UI tests become flaky. Your constraints already allow a fixed current time, so the clock should be injected at one point.
+
+**R5. The current data model does not match the target model.** *(`lib/roomsData.ts` → `Room`, `Booking`)*
+The current `Room` has `building` and `blockedReason` but no `equipment`, and its `Booking` carries `id`, `bookedBy` and `purpose`. The target has `equipment: string[]` and plain `{start, end}` bookings. While both exist there will be two `Room` types. TypeScript's structural typing can hide which one a component is really using. The UI probably renders `blockedReason`, `bookedBy` and `purpose`, so deleting them breaks rendering. Types and data also live in one file, and rules are split between the `src/` root and `lib/`.
+
+**R6. Equipment names are free-form strings.** *(future `rooms.ts` / `filter.ts`)*
+With `string[]`, a mismatch like "Projector" versus "projector" makes F2 quietly exclude valid rooms. The UI's checkbox list could also drift from the names used in the data.
+
+**R7. The safety net covers only one function.** *(`booking.test.ts`)*
+The 26 tests guard `canBook` and nothing else. `evaluateAvailability`, `overlapsExisting`, time parsing and `timeUtils` are untested, as is everything the refactor will touch. "26 green" alone does not prove the refactor is safe.
+
+ ## 2. Plan: small, safe steps, smallest first
+
+Run `vitest` after every step. `canBook` and its 26 tests are never edited.
+
+**Step 0. Baseline.** Run the suite, confirm 26 passing, and commit. All later steps are additive or local.
+
+**Step 1. Characterisation tests only, no production change.**
+- Add a parity test: for a table of cases, `evaluateAvailability(...).available === canBook(...)`. This locks R1 down before anything moves.
+- Add tests that capture today's behaviour of `timeInput` and `toInputValue`, including `""`, `"24:00"` and malformed input. If `NaN` does leak through (R2), record it as a known bug to fix in Step 7, not now.
+
+**Step 2. Create `src/rooms.ts`, with nothing importing it yet.**
+- Add the target `Room` type, an exported `EQUIPMENT` vocabulary (R6) and `ROOMS`: at least 4 fictional rooms, at least one blocked, varied capacity and equipment.
+- Add a data sanity test: unique ids, at least 4 rooms, `start < end` for every booking, no overlapping bookings within a room, and every equipment item drawn from `EQUIPMENT`.
+
+**Step 3. Create `src/filter.ts` with `filterRooms`, tested but not wired.**
+- Test the capacity boundary, where `capacity === attendees` must pass (F1).
+- Test that a room with only some of the required items is excluded (F2).
+- Test that an empty equipment list matches all rooms.
+- Test that no matches returns `[]`, which feeds F4.
+- Test that the input array is not mutated.
+- Decide what `attendees` of 0, negative or `NaN` should do.
+
+**Step 4. Add `checkRoom` to `booking.ts`, appended below `canBook` and tested.**
+- Test with two rooms where only room A has a booking at the requested time: room A is rejected and room B is accepted. This is the "not another room's data" test.
+- Test that a blocked room returns `false` (F3).
+- Test that an unknown `roomId` returns `false`.
+- Test that touching endpoints are still allowed.
+- Test that `rooms` is unchanged afterwards, using a deep-equal against a clone or a frozen fixture (AC5).
+
+**Step 5. Inject a fixed `now` (R4).**
+Define one constant, or an `App`-level prop passed to `RoomChecker`, and stop calling `nowInMinutes()` during render. This is a one-line behaviour change and the easiest point to verify by hand.
+
+**Step 6. Move parsing out of the component (R2).**
+Move `timeInput` and `toInputValue` into `lib/timeUtils.ts` unchanged. The Step 1 tests prove nothing changed. If the `NaN` hole exists, fix it now: return `null` and treat `null` as "can't check".
+
+**Step 7. Wire the decision through `checkRoom`, selecting by id (R3).**
+`RoomChecker` reads `ROOMS` from `rooms.ts`, stores only `selectedRoomId`, and computes the verdict as `checkRoom(ROOMS, selectedRoomId, {start, end, now})`. The verdict should be derived at render time, not stored in state, so changing room refreshes it automatically (F5). If you keep a "Check" button, clear the stored result whenever the room changes.
+
+**Step 8. Add the filter UI and the empty state.**
+- Add an attendees input and equipment checkboxes generated from `EQUIPMENT`.
+- Show the list from `filterRooms`.
+- Show a clear message when the list is empty (F4).
+- Reconcile the selection: if the selected id drops out of the filtered list, clear it and prompt the user to pick a room (F5).
+
+**Step 9. Reduce the reasons to one source of rules (R1).**
+Point `evaluateAvailability` at the new `Room` shape. Make it import the limit from `booking.ts` rather than defining its own, and reuse a single overlap predicate. The parity test from Step 1 must stay green.
+
+**Step 10. Update `Timeline`** to take the selected room's `{start, end}[]` bookings from `rooms.ts`.
+
+**Step 11. Delete dead code.**
+Remove `lib/roomsData.ts` and any duplicate constants once nothing imports them, checking with a project-wide search.
+
+**Step 12. AC6 pass.**
+Check by hand at about 360px and at desktop width. Put the result banner in an `aria-live` region and make the empty state and blocked status readable without relying on colour. If you want automated UI coverage of F5, add `jsdom` and Testing Library here as dev dependencies only.
+
+ ## Decisions to settle before coding
+
+1. **Blocked rooms in the list.** Should `filterRooms` hide blocked rooms, or show them marked "Blocked"? I'd keep `filterRooms` to F1 and F2 only and let `checkRoom` handle F3. That way a blocked room stays visible but can never show "Available".
+2. **Extra fields.** Should `building`, `blockedReason`, `bookedBy` and `purpose` survive as optional display fields on the new types? Or should the UI stop showing them, matching the target type exactly?
+3. **Check timing.** Should the check run live as inputs change, or only on a button press? This decides how F5 is implemented in Step 7.
 ```
 
-**Problems found:** (write here)
-**Changes made:** (write here)
-**Verified by:** (write here)
+**Problems found:** It worked from the map only and guessed. (1) Step 1 compares `evaluateAvailability(...).available`, but the function returns `{ status, reasons }`; there is no `.available`. (2) R2 claims `NaN` could make `canBook` return true; in the code the first check `if (!(0 <= start && start < end && end <= 1440)) return false` returns false for `NaN`, and `timeInput` returns `null`, which `RoomChecker` turns into -1. (3) Step 9 says to import the 120 limit from `booking.ts`, which contradicts its own rule that `canBook` is never edited. (4) It did not mention `rooms.find(...)!`.
+**Changes made:** I kept its risks R1, R2, R4, R5 after finding them in the code (3.1, risks 1, 2, 5, 3) and added `rooms.find(...)!` (risk 4) myself. I did not keep R3 (selection by index): the state is already `roomId`. I sent the corrections back (Exchange 2).
+**Verified by:** Reading `src/booking.ts`, `src/lib/validation.ts`, `src/components/RoomChecker.tsx` and `src/lib/roomsData.ts` at the baseline commit 78cb2c0; the baseline run in 1.1 (26/26).
 
 ### 8.2 Exchange 2
 
-**Tool and model:** (write here)
-**Date:** (write here)
-**Purpose:** (write here)
+**Tool and model:** Claude (claude.ai web), Claude Opus 5.5
+**Date:** 2026-11-16
+**Purpose:** The plan: revise steps 1, 7 and 9 after my corrections, keeping `canBook` unchanged (same chat as Exchange 1).
 
 **Prompt:**
 
 ```text
-(paste here)
+I checked the code. evaluateAvailability returns { status: 'available' | 'unavailable', reasons }, there is no .available field. In booking.ts the 120 limit is a literal inside canBook, not an exported constant, so step 9 would have to edit booking.ts. RoomChecker uses rooms.find(...)! for the selected room. Please revise steps 1, 7 and 9 only, keeping canBook unchanged. Still no code.
 ```
 
-**Output used:**
+**Output used:** (unedited; the answer's own code fences are written as `~~~` and its heading lines are indented by one space, so they do not break this report's sections)
 
 ```text
-(paste here)
+Here are the revised steps. Steps 0, 2–6 and 8, 10–12 stay as they were, and `canBook` is never edited.
+
+**Step 1 (revised). Characterisation tests only, no production change.**
+- **Parity test, using the real return shape.** Build one table of cases, each with a fixture room, start, end and a fixed `now`. For each case, check that `evaluateAvailability(room, start, end, now).status === 'available'` matches `canBook({ start, end, now, blocked: room.blocked, bookings: room.bookings })`. Feeding both from the same fixture keeps the comparison honest.
+- **Boundary cases.** Include at least these:
+  - a duration of exactly 120 minutes and one of 121 minutes
+  - start equal to end
+  - start one minute before `now`
+  - a booking that only touches another at an endpoint
+  - a booking that overlaps another by one minute
+  - a blocked room that would otherwise be free
+- **Consistency of reasons.** Check that `status === 'unavailable'` if and only if `reasons.length > 0`.
+- **Time parsing.** The `timeInput` / `toInputValue` tests stay as before.
+- **If a case disagrees,** for example because `evaluateAvailability` checks something `canBook` doesn't, like a time past the end of the day, record it as a known gap with a skipped or todo test. Decide it in Step 9, not now.
+
+**Step 7 (revised). Wire the decision through `checkRoom` and remove the `!`.**
+- **Where the risk is.** The selection is already looked up by id, but `rooms.find(...)!` asserts that a match always exists. Once filtering is added, the selected id can drop out of the list. The `!` then either crashes on the first property access or passes `undefined` into the rules.
+- **7a: narrow the input type.** Change `evaluateAvailability`'s `room` parameter to require only what it actually reads, such as `blocked` and `bookings` as `{start, end}[]`. Then a room from the new `rooms.ts` is accepted. This is a type-only change, and the parity test proves behaviour is unchanged. If it reads `blockedReason`, make that field optional with fallback text.
+- **7b: read from `ROOMS` and handle "not found".** Switch `RoomChecker` to `ROOMS` from `rooms.ts` and keep `selectedRoomId` in state. Do one lookup without `!`, and treat a missing room as its own "No room selected" state. In that state, show a prompt and do not call `checkRoom` or `evaluateAvailability`. This matters because `checkRoom` returns `false` for an unknown id (Step 4), which would wrongly show "Unavailable" when the real situation is that nothing is selected.
+- **7c: derive the verdict on each render.** Compute it as `checkRoom(ROOMS, selectedRoomId, { start, end, now })` and take the reasons from `evaluateAvailability` on the room you found. Both are computed during render, not stored, so changing the room refreshes the result (F5). Until Step 9, the Step 1 parity test is what keeps the verdict and the reasons in agreement.
+
+**Step 9 (revised). Make `canBook` the only source of the verdict, without touching `booking.ts`.**
+- **What changes.** `evaluateAvailability` takes its `status` from a call to `canBook` and keeps its own checks only to build the reason strings. The verdict then has exactly one implementation. `validation.ts` importing from `booking.ts` is safe, because `booking.ts` imports nothing from `validation.ts`.
+- **Keep the constant, and tie it to `canBook` with a test.** `MAX_BOOKING_MINUTES = 120` stays in `validation.ts` for the reason text and duration check. A test then asserts that `canBook` accepts a booking of exactly `MAX_BOOKING_MINUTES` and rejects one of `MAX_BOOKING_MINUTES + 1`. If anyone changes either the literal in `canBook` or the constant, the test fails, so the two copies can't drift apart silently.
+- **Consistency guard.** Keep the "unavailable ⇔ non-empty reasons" test. Add one asserting that whenever `overlapsExisting` reports an overlap, `canBook` returns `false`, and that bookings touching only at an endpoint produce no overlap reason.
+- **Resolving Step 1 gaps.** Any gap recorded in Step 1 gets resolved here. If `evaluateAvailability` had a check that `canBook` lacks, decide whether to drop it or keep it as a reason-only warning. It cannot change the verdict, since `canBook` now owns that.
+- **Optional, out of scope.** If you're later allowed to touch `canBook`, replacing its literal with an exported constant is a one-line change that the 26 tests guard. The tie test above makes it unnecessary for now.
 ```
 
-**Problems found:** (write here)
-**Changes made:** (write here)
-**Verified by:** (write here)
+**Problems found:** The revised step 1 suggests recording a disagreement "with a skipped or todo test"; the assignment forbids `.skip` and `.todo` (README section 9), so I will not do that. Its step 9 keeps 120 in two places and relies on a test to tie them.
+**Changes made:** I took the revised step 9 as a modification of the first one (3.3) and put it into my plan as step 6. From step 7 I took the "No room selected" state instead of `!` (my plan step 4). The parity test of step 1 is not in my plan: after step 6 there is only one verdict, so there is nothing left to compare.
+**Verified by:** The plan in 3.2 is committed before any change to `app/src` (commit "sis-04: analysis and plan"); the steps are checked as they are done by `npx vitest run` (section 6).
 
 ### 8.3 Exchange 3
 
