@@ -1,0 +1,40 @@
+# week-09/submission.yml — your declaration for this lab.
+#
+# Facts only. Every explanation goes in lab-report.md; nothing here repeats prose.
+
+schema: 1
+week: "09"
+
+student:
+  name: Saltanat Sultanakhmet
+  student_id: 24B032036
+  github: CodeBySaltanat
+
+assistant:
+  tool: Claude
+  model: Claude Opus 5.5
+  fresh_chats: yes
+
+calls:
+  r3: asked
+  first_run_s_fails: 4
+
+checker:
+  pass: 30
+  fail: 0
+  error: 0
+  commit: 6d0e7e0
+  known_fails: []
+
+review_findings:
+  - "S05-S08: my first definition had only types, so it accepted room = 204, start = -30, end = 1500 and a booking with no end"
+  - "R2: the model converted 16:30 to 990 and called the tool although the room is blocked and the slot is 150 minutes - only canBook can refuse it (AC2, AC3)"
+  - "R3: the model asked instead of calling and invented no values, but its question did not ask for now, and the tool has no date field for tomorrow"
+  - "A3: raising the 120-minute limit because one user asked changes AC2 itself, so it is blocked, not asked"
+  - "AC1: the schema enforces 0-1440 and whole minutes, but not start < end or start after now"
+
+honesty:
+  definition_written_by_me: yes
+  calls_unedited: yes
+  outputs_unedited: yes
+  ai_usage_disclosed: yes
