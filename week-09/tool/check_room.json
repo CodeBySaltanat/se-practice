@@ -1,9 +1,18 @@
 {
-  "name": "",
-  "description": "",
+  "name": "check_room",
+  "description": "Checks whether the room is free for the requested time slot; all times are given in minutes since midnight, from 0 to 1440 (10:00 = 600), and this tool does not save or create a booking, it only checks.",
   "inputSchema": {
     "type": "object",
-    "properties": {},
-    "required": []
+    "properties": {
+      "start": { "type": "integer" },
+      "end": { "type": "integer" },
+      "now": { "type": "integer" },
+      "blocked": { "type": "boolean" },
+      "bookings": {
+        "type": "array",
+        "items": { "type": "object" }
+      }
+    },
+    "required": ["start", "end", "now", "blocked", "bookings"]
   }
 }
