@@ -4,15 +4,25 @@
   "inputSchema": {
     "type": "object",
     "properties": {
-      "start": { "type": "integer" },
-      "end": { "type": "integer" },
-      "now": { "type": "integer" },
-      "blocked": { "type": "boolean" },
+      "start": { "type": "integer", "minimum": 0, "maximum": 1440, "description": "Requested start, whole minutes since midnight (10:00 = 600)." },
+      "end": { "type": "integer", "minimum": 0, "maximum": 1440, "description": "Requested end, whole minutes since midnight (24:00 = 1440)." },
+      "now": { "type": "integer", "minimum": 0, "maximum": 1440, "description": "The current time, whole minutes since midnight." },
+      "blocked": { "type": "boolean", "description": "true if the room is blocked, otherwise false." },
       "bookings": {
         "type": "array",
-        "items": { "type": "object" }
+        "description": "Existing bookings of the room; an empty list if there are none.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "start": { "type": "integer", "minimum": 0, "maximum": 1440 },
+            "end": { "type": "integer", "minimum": 0, "maximum": 1440 }
+          },
+          "required": ["start", "end"],
+          "additionalProperties": false
+        }
       }
     },
-    "required": ["start", "end", "now", "blocked", "bookings"]
+    "required": ["start", "end", "now", "blocked", "bookings"],
+    "additionalProperties": false
   }
 }
