@@ -1,0 +1,23 @@
+' diagrams/before.puml - the starting point (week-08 app, baseline commit 78cb2c0).
+@startuml
+title Before: the page holds the data import, the time parsing and two rule paths
+component "App.tsx" as App
+component "components/RoomChecker.tsx" as RC
+component "components/Timeline.tsx" as TL
+component "booking.ts\ncanBook()" as Booking
+component "lib/validation.ts\nevaluateAvailability()\noverlapsExisting()\nMAX_BOOKING_MINUTES" as Val
+component "lib/roomsData.ts\nRoom, Booking, rooms" as Data
+component "lib/timeUtils.ts\nminutesToLabel, nowInMinutes ..." as Time
+App --> RC
+RC --> Data : rooms
+RC --> Booking : canBook()
+RC --> Val : evaluateAvailability()
+RC --> Time
+RC --> TL
+TL --> Data : type Room
+TL --> Time
+Val --> Data : type Room
+Val --> Time
+note right of RC : timeInput(), toInputValue(),\nrooms.find(...)!, and a fallback\nwhen canBook and evaluateAvailability disagree
+note bottom of Val : AC1-AC4 a second time:\n120 and the overlap test repeated
+@enduml

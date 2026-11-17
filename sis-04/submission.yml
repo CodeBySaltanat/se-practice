@@ -1,0 +1,47 @@
+# SIS #04 — the declaration. FACTS ONLY: every explanation stays in report.md.
+
+schema: 1
+assignment: "sis-04"            # do not edit
+
+student:
+  name: Saltanat Sultanakhmet
+  student_id: 24B032036
+  group: Monday 16:00-19:00
+  github: CodeBySaltanat
+
+assistant:
+  tool: Claude.ai
+  model: Claude Opus 5.5
+
+project:
+  start_from: week-08
+  baseline_commit: 78cb2c0
+  language: ts
+  vitest: 2.1.9
+
+counts:
+  rooms: 5
+  tests_original: 26
+  tests_final: 46
+  risks: 5
+  exchanges: 3
+
+checker:
+  pass: 33
+  fail: 0
+  error: 0
+  commit: 7504283
+  known_fails: []
+
+review_findings:
+  - "risk 1 / src/lib/validation.ts: the assistant's parity test compared evaluateAvailability(...).available, a field that does not exist (the function returns status), so it would fail on the first run"
+  - "AC2: the assistant's step 9 imported the 120 limit from booking.ts, but there it is a literal inside canBook; kept canBook unchanged and tied MAX_BOOKING_MINUTES to it with B1/B2 tests"
+  - "F5: checkRoom gets the room by id from ROOMS; the test with rooms a and b gives false and true for the same 600-660, so the check uses the chosen room's own bookings"
+  - "F3: blocked rooms stay in the filtered list; the INT test shows blocked room c listed by filterRooms but rejected by checkRoom"
+  - "src/booking.ts unavailableReasons: exchange 3 found that a request over 120 minutes that also overlaps shows only the duration reason - kept as the remaining limitation"
+
+honesty:
+  baseline_unchanged: yes
+  runs_unedited: yes
+  no_invented_metrics: yes
+  ai_usage_disclosed: yes
