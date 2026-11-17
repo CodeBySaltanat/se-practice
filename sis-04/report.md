@@ -198,7 +198,15 @@ Please give a plan, not a full rewrite, and no code yet.
 <!-- Short: the catalog (how many rooms, which equipment), how the filter is chosen on the page,
      what the empty state says, what happens to an old result when the room changes. -->
 
-(write here)
+`src/rooms.ts` holds five fictional rooms (Room 101, 202, 303, 404, 505; capacity 8 to 40) with the
+equipment `projector`, `whiteboard`, `video-call`, `computers`; Room 303 is blocked. On the page the
+filter is an "Attendees" number and one checkbox per equipment item (`EQUIPMENT`); the list shows only
+`filterRooms(ROOMS, ...)`. A blocked room stays in the list, marked "Blocked", and can never show
+Available (F3). When nothing matches, the list says "No rooms match these requirements. Lower the
+number of attendees or select less equipment." (F4). The result is not stored: it is computed on every
+render from the selected room id and the times, so selecting another room (or filtering the selected
+one out) replaces the old result at once (F5). The current time is fixed at 09:00 for the demo and can
+be changed in its own field.
 
 ### 4.2 Demonstration
 
@@ -207,11 +215,11 @@ Please give a plan, not a full rewrite, and no code yet.
 
 | Screenshot | What it shows |
 | --- | --- |
-| `evidence/filter-match.png` | (write here) |
-| `evidence/filter-empty.png` | (write here) |
-| `evidence/switch-a.png` | (write here) |
-| `evidence/switch-b.png` | (write here) |
-| `evidence/narrow.png` | (write here) |
+| `evidence/filter-match.png` | Attendees 15 and "projector" ticked: the list shows only Room 101 (30, projector, whiteboard) and Room 404 (40, projector, video-call). |
+| `evidence/filter-empty.png` | Attendees 50: no room is that big, so the list is empty and shows "No rooms match these requirements..." (F4); the result panel says "No room to check". |
+| `evidence/switch-a.png` | No filter, Room 101 selected, 10:00-11:00, now 09:00: Available - Room 101 is booked 9:00-10:00 and 13:00-14:30, and 10:00 only touches the first booking. |
+| `evidence/switch-b.png` | The same 10:00-11:00 with Room 202 selected: Unavailable, "The time overlaps an existing booking of this room." - Room 202 is booked 10:00-11:00 (F5). |
+| `evidence/narrow.png` | The page at phone width in portrait (Chrome device toolbar, iPhone 12 Pro): the filter, the room list and the result stack in one column with no sideways scrolling (AC6). |
 
 ## 5. Refactoring (Task 3)
 
@@ -221,10 +229,13 @@ Please give a plan, not a full rewrite, and no code yet.
 
 | Module or component | Responsibility |
 | --- | --- |
-| `src/rooms.ts` | (write here) |
-| `src/booking.ts` | (write here) |
-| `src/filter.ts` | (write here) |
-| (write here) | (write here) |
+| `src/rooms.ts` | Data only: the `Room` type, the `EQUIPMENT` list and the five `ROOMS`. No functions. |
+| `src/booking.ts` | The rules: `canBook` (AC1-AC5, not changed), `checkRoom` (finds the chosen room and passes its own `blocked` and `bookings` to `canBook`; F3, F5), `unavailableReasons` (the text under "Unavailable"; it never decides). |
+| `src/filter.ts` | `filterRooms`: F1 capacity >= attendees and F2 ALL selected equipment; returns a new array. |
+| `src/components/RoomChecker.tsx` | The page: holds the state (filters, selected id, times, now) and shows what `filterRooms`, `checkRoom` and `unavailableReasons` return. No room data, no rule. |
+| `src/components/FilterPanel.tsx` | The attendees field and the equipment checkboxes; only reports changes. |
+| `src/components/Timeline.tsx` | Draws the selected room's bookings and the request on a 24-hour bar. |
+| `src/lib/timeUtils.ts` | Time text only: labels, and "HH:MM" <-> minutes for the time inputs. |
 
 ### 5.2 Design decisions
 
@@ -233,8 +244,9 @@ Please give a plan, not a full rewrite, and no code yet.
 
 | Decision | Alternative I did not take | Why |
 | --- | --- | --- |
-| (write here) | (write here) | (write here) |
-| (write here) | (write here) | (write here) |
+| One verdict: the page asks only `checkRoom`, which calls `canBook` with the chosen room; `unavailableReasons` only explains a `false`. | Keep `evaluateAvailability` as a second decision and compare it with a parity test (the assistant's Step 1 / Step 9). | Two decisions could disagree (risk 1); the old page even had a fallback for that case. With one verdict there is nothing to compare, and the 26 `canBook` tests guard it (AC1-AC5). |
+| Blocked rooms stay in the filtered list, marked "Blocked"; `filterRooms` does only F1 and F2. | Hide blocked rooms inside `filterRooms`. | F3 is about availability, so it belongs to `checkRoom`; a user who needs that room should see why it is not offered, and the F3 tests and the INT test check it. |
+| `canBook` is not edited; the 120 stays a literal there, and `MAX_BOOKING_MINUTES` in `booking.ts` is only for the reason text, tied by B1/B2 tests. | Export the limit from `canBook` (the assistant's first Step 9). | `canBook` is the tested reference from Practice 07-08; the B1/B2 tests (120 available, 121 rejected) fail if either copy changes (3.3). |
 
 ### 5.3 Duplication removed
 
@@ -242,7 +254,10 @@ Please give a plan, not a full rewrite, and no code yet.
 
 | Before (file / function, what was repeated) | After (where it lives now) |
 | --- | --- |
-| (write here) | (write here) |
+| `lib/validation.ts` `evaluateAvailability()`: AC1-AC4 checked a second time to decide available/unavailable | Deleted; the only verdict is `canBook` via `checkRoom` in `src/booking.ts` |
+| `lib/validation.ts` `overlapsExisting()`: the overlap test `start < b.end && b.start < end` repeated from `canBook` | Deleted; `unavailableReasons` finds the overlapping booking by calling `canBook` with that one booking |
+| `components/RoomChecker.tsx` decision `useMemo`: `canBook` plus `evaluateAvailability` plus a fallback reason when they disagree | One `checkRoom(ROOMS, room.id, request)` call |
+| `components/RoomChecker.tsx` `toInputValue()`: the hour/minute split of `minutesToLabel` repeated | `split()` in `src/lib/timeUtils.ts`, used by `minutesToLabel` and `toTimeInput` |
 
 ## 6. Automated tests (Task 4)
 
@@ -253,30 +268,33 @@ Please give a plan, not a full rewrite, and no code yet.
 
 | ID | Test title (as in the file) | Input → expected |
 | --- | --- | --- |
-| AC1 | (write here) | (write here) |
-| AC2 | (write here) | (write here) |
-| AC3 | (write here) | (write here) |
-| AC4 | (write here) | (write here) |
-| AC5 | (write here) | (write here) |
-| F1 | (write here) | (write here) |
-| F2 | (write here) | (write here) |
-| F3 | (write here) | (write here) |
-| F4 | (write here) | (write here) |
-| F5 | (write here) | (write here) |
-| B1 | (write here) | (write here) |
-| B2 | (write here) | (write here) |
-| B3 | (write here) | (write here) |
-| B4 | (write here) | (write here) |
-| B5 | (write here) | (write here) |
-| B6 | (write here) | (write here) |
-| INT | (write here) | (write here) |
+| AC1 | `AC1: in room b, 480-510 starts before now and is rejected` | room b, 480-510, now 540 -> false |
+| AC2 | `B2 AC2: in room b, 121 minutes (720-841) is rejected` | 720-841 -> false |
+| AC3 | `F3 AC3: a blocked room with no bookings is not available` | blocked room c, 600-660 -> false |
+| AC4 | `B3 AC4: in room a, 660-720 only touches its booking 600-660 and is available` | room a (600-660), 660-720 -> true |
+| AC5 | `AC5: an Available check leaves every room and its bookings unchanged` | 660-720 in room a -> true, rooms deep-equal before |
+| F1 | `F1: 10 attendees keeps only rooms with capacity >= 10` | capacities 8, 12, 20, attendees 10 -> [b, c] |
+| F2 | `F2: projector AND whiteboard keeps only the room that has both` | [projector, whiteboard] -> [a] only |
+| F3 | `F3 AC3: a blocked room with no bookings is not available` | room c blocked, free times -> false |
+| F4 | `F4: no room matches 25 attendees with a whiteboard - an empty list` | 25 + whiteboard -> [] |
+| F5 | `F5: the same times 600-660 are Unavailable in room a and Available in room b` | 600-660: room a -> false, room b -> true |
+| B1 | `B1 AC2: in room b, exactly 120 minutes (720-840) is available` | 720-840 -> true |
+| B2 | `B2 AC2: in room b, 121 minutes (720-841) is rejected` | 720-841 -> false |
+| B3 | `B3 AC4: in room a, 660-720 only touches its booking 600-660 and is available` | 660-720 vs 600-660 -> true |
+| B4 | `B4 AC4: in room a, 630-690 overlaps its booking 600-660 and is rejected` | 630-690 vs 600-660 -> false |
+| B5 | `B5 F1: capacity exactly equal to attendees (8 for 8) is included` | attendees 8, capacity 8 -> included |
+| B6 | `B6 F1: capacity one below attendees (8 for 9) is excluded` | attendees 9, capacity 8 -> excluded |
+| INT | `INT F1 F2 F3: 15 people with projector and whiteboard leaves b and c; 600-660 is Available in b, not in blocked c` | filterRooms -> [b, c]; checkRoom b -> true, c -> false |
 
 ### 6.2 Commands
 
 <!-- The commands exactly as you typed them, from app/. -->
 
 ```text
-(paste here)
+cd sis-04\app
+npm install
+npx vitest run
+npx vitest run > ..\final-run.txt
 ```
 
 ### 6.3 Final run
@@ -285,7 +303,7 @@ Please give a plan, not a full rewrite, and no code yet.
      tests equals what your test files hold (R2). -->
 
 ```text
-(paste here)
+@@FINALRUN@@
 ```
 
 ## 7. Quality evaluation (Task 5)
@@ -296,10 +314,10 @@ Please give a plan, not a full rewrite, and no code yet.
 
 | Measure | Original | Final | How I obtained it |
 | --- | --- | --- | --- |
-| Automated tests passed / total | (write here) | (write here) | (write here) |
-| Duplicated logic locations removed | (write here) | (write here) | (write here) |
-| Code structure: modules and their responsibilities | (write here) | (write here) | (write here) |
-| Remaining limitation | (write here) | (write here) | (write here) |
+| Automated tests passed / total | 26/26 | 46/46 | `npx vitest run` at the baseline commit 78cb2c0 (1.1) and on the final code (6.3) |
+| Duplicated logic locations removed | 0 removed (AC1-AC4 decided in two places: `canBook` and `evaluateAvailability`) | 4 removed | Counted in 5.3, one row per location I can point at in the baseline files |
+| Code structure: modules and their responsibilities | 7 source files; rules split between `booking.ts` and `lib/validation.ts`, data and types in `lib/roomsData.ts`, the page imports the data and parses time | 9 source files; data `rooms.ts`, filter `filter.ts`, rules `booking.ts`, time text `lib/timeUtils.ts`, UI `components/` with no rule | `git ls-files sis-04/app/src` at 78cb2c0 and at the final commit (tests not counted); 5.1 and the diagrams |
+| Remaining limitation | The verdict could come from two different functions | `unavailableReasons` still re-checks the conditions to write its text, and for a request longer than 120 minutes that also overlaps it shows only the duration reason, not the overlap | Exchange 3 (8.3) found the long-overlap case: 600-800 with a booking 650-700 gives only "longer than 120 minutes"; the verdict is still Unavailable |
 
 ## 8. AI evidence appendix
 
@@ -503,25 +521,85 @@ Here are the revised steps. Steps 0, 2–6 and 8, 10–12 stay as they were, and
 
 ### 8.3 Exchange 3
 
-**Tool and model:** (write here)
-**Date:** (write here)
-**Purpose:** (write here)
+**Tool and model:** Claude (claude.ai web), Claude Opus 5.5
+**Date:** 2026-11-17
+**Purpose:** Task 4 tests / refactoring review: can the new `unavailableReasons` text ever disagree with the verdict of `canBook` (a fresh chat).
 
 **Prompt:**
 
 ```text
-(paste here)
+Review this TypeScript function from my room-booking app. The verdict (Available / Unavailable) always comes from checkRoom, which calls canBook below; unavailableReasons only produces the text shown under "Unavailable". 
+
+Question: can unavailableReasons ever disagree with canBook - that is, return an empty list when canBook says false, or return a reason when canBook says true? Give a concrete counterexample input (start, end, now, blocked, bookings) if there is one. Do not rewrite the code, just answer and point at the lines.
+
+export function canBook({ start, end, now, blocked, bookings }: {
+  start: number;
+  end: number;
+  now: number;
+  blocked: boolean;
+  bookings: { start: number; end: number }[];
+}): boolean {
+  if (!(0 <= start && start < end && end <= 1440)) return false;
+  if (!(start > now)) return false;
+  if (end - start > 120) return false;
+  if (blocked) return false;
+  for (const b of bookings) {
+    if (start < b.end && end > b.start) return false;
+  }
+  // keep the room's list current with the slot that was just found free
+  return true;
+}
+
+export const MAX_BOOKING_MINUTES = 120;
+
+// Why a request is Unavailable, in words for the page (AC6). It does not decide anything:
+// the verdict is always checkRoom/canBook. The overlap reason reuses canBook on one booking at a time.
+export function unavailableReasons(
+  room: { blocked: boolean; bookings: Interval[] },
+  request: { start: number; end: number; now: number },
+): string[] {
+  const { start, end, now } = request;
+  const reasons: string[] = [];
+  if (!(0 <= start && start < end && end <= 1440)) reasons.push('The start time must be earlier than the end time, within the day.');
+  else {
+    if (!(start > now)) reasons.push('The start time must be after the current time.');
+    if (end - start > MAX_BOOKING_MINUTES) reasons.push(`A booking cannot be longer than ${MAX_BOOKING_MINUTES} minutes.`);
+    const clash = room.bookings.filter(
+      (b) => !canBook({ start, end, now: start - 1, blocked: false, bookings: [b] }) && end - start <= MAX_BOOKING_MINUTES,
+    );
+    if (clash.length > 0) reasons.push('The time overlaps an existing booking of this room.');
+  }
+  if (room.blocked) reasons.push('This room is blocked.');
+  return reasons;
+}
 ```
 
-**Output used:**
+**Output used:** (unedited; the answer's own code fences are written as `~~~` and its heading lines are indented by one space, so they do not break this report's sections)
 
 ```text
-(paste here)
+No, they can't disagree. As long as `checkRoom` passes `room.blocked` and `room.bookings` to `canBook` unchanged, `unavailableReasons` returns an empty list exactly when `canBook` returns `true`. There is no counterexample.
+Every way `canBook` returns `false` produces at least one reason:
+
+1. Bad range (`!(0 <= start && start < end && end <= 1440)`). This is the same expression as the first `if` in `unavailableReasons`, which pushes the range message. NaN or Infinity inputs also fail it in both functions.
+2. `!(start > now)`. This is identical to the first check inside the `else`. A NaN `now` fails it in both.
+3. `end - start > 120`. This matches the `MAX_BOOKING_MINUTES` check, and the constant equals the hard-coded 120.
+4. `blocked`. This matches `if (room.blocked)`, which sits outside the `if/else`, so it's pushed even when the range is bad.
+5. Overlap. The `clash` filter reaches this case. By that point the range is valid (we're in the `else`), `now: start - 1` makes `start > now` true, and `blocked: false` skips the blocked check. The extra `&& end - start <= MAX_BOOKING_MINUTES` guarantees `canBook` didn't fail on duration. So `!canBook(...)` is true only when `start < b.end && end > b.start` holds for that single booking, which is the same test as `canBook`'s loop.
+
+When `canBook` returns `true`, no reason fires: the range, past-time, duration and blocked checks all pass. The `clash` filter's `canBook` calls can then fail only on overlap, and `canBook` already found none.
+Things that look suspicious but don't break agreement:
+
+* Long overlapping requests get no overlap reason. For example, `start=600, end=800, now=0, blocked=false, bookings=[{start:650,end:700}]` shows only the "longer than 120 minutes" reason. The `&& end - start <= MAX_BOOKING_MINUTES` guard hides the overlap. The list is incomplete but still non-empty, so the verdict and the text still agree.
+* A bad range suppresses the past-time, duration and overlap reasons, because of the `else`. "Blocked" can still appear. Again, this is incomplete rather than contradictory.
+* `canBook` lists one failure; `unavailableReasons` lists all applicable ones. This only changes how many reasons appear, not whether any do.
+* The comment `// keep the room's list current with the slot that was just found free` doesn't match the code. `canBook` mutates nothing today. If someone later makes it push the slot into `bookings`, the `clash` filter's calls would push into the throwaway `[b]` arrays, which is harmless. But calling `canBook` at all would then have side effects. Delete the comment or decide what it's supposed to mean.
+
+The one assumption I can't check from here is that `checkRoom` passes exactly `room.blocked`, `room.bookings` and the same `start`, `end` and `now` to `canBook`. If it filters bookings (for example, excluding the user's own booking) or computes `now` differently, the two functions could diverge.
 ```
 
-**Problems found:** (write here)
-**Changes made:** (write here)
-**Verified by:** (write here)
+**Problems found:** It could not see `checkRoom` and said so; I checked it: `checkRoom` passes the chosen room's `blocked` and `bookings` and the same `start`, `end`, `now` unchanged (`src/booking.ts`, and the F5 test with rooms a and b). Its "suspicious" points are right: a request longer than 120 minutes that also overlaps gets only the duration reason.
+**Changes made:** I deleted the stale comment `// keep the room's list current with the slot that was just found free` from `canBook` (left from the Practice 08 BUG-B fix; no code changed). I kept the reason text as it is and wrote the long-overlap case down as the remaining limitation (section 7).
+**Verified by:** `npx vitest run` after deleting the comment: 46/46 (6.3); the B1/B2/AC4/F3 tests on `unavailableReasons` in `src/catalog.test.ts`.
 
 ## 9. Checker results and known fails
 
@@ -530,7 +608,7 @@ Here are the revised steps. Steps 0, 2–6 and 8, 10–12 stay as they were, and
 
 | Check | Why it still fails |
 | --- | --- |
-| (write here) | (write here) |
+| none | |
 
 ## 10. AI reflection (Task 6)
 
@@ -539,4 +617,12 @@ Here are the revised steps. Steps 0, 2–6 and 8, 10–12 stay as they were, and
      incorrect? What did you personally verify? How did tests influence your engineering
      decisions? What would you improve next? -->
 
-(write here)
+**Контекст.** В первом сообщении я дала карту репозитория (восемь файлов, по строке на каждый), AC1–AC6, F1–F5, целевую структуру (`rooms.ts`, `filter.ts`, `checkRoom` в `booking.ts`) и ограничения: без логина, сети и хранилища, только вымышленные данные. Исходный код я не приложила, поэтому ассистент местами угадывал. В третьем чате я, наоборот, дала только `canBook` и `unavailableReasons` и задала один узкий вопрос.
+
+**Полезное и неверное.** Полезными оказались три риска: дублирование правил, зависимость от реальных часов и модель `Room` без `equipment`. Пригодились также идея ограничить `filterRooms` правилами F1/F2, а блокировку проверять в `checkRoom`, и вычисление вердикта при каждом рендере (F5). Ошибок было несколько. Тест сравнивал выдуманное поле `.available`, хотя функция возвращает `{ status, reasons }`. Тревога про `NaN` оказалась ложной: первая проверка `canBook` и так возвращает false, а `timeInput` отдаёт `null`. Шаг 9 предлагал импортировать 120 из `booking.ts`, что противоречило его же правилу не трогать `canBook`. Пересмотренный план советовал `.skip`/todo, хотя задание это запрещает. А `rooms.find(...)!` ассистент вообще не заметил.
+
+**Что я проверила сама.** Я прочитала `booking.ts`, `validation.ts`, `RoomChecker.tsx` и `roomsData.ts` на коммите 78cb2c0 и убедилась, что `checkRoom` передаёт `blocked`, `bookings`, `start`, `end` и `now` без изменений. `npx vitest run` я запускала после каждого шага.
+
+**Роль тестов.** 26 тестов `canBook` стали эталоном, поэтому саму функцию я не меняла. Две копии числа 120 я связала тестами B1/B2: 120 минут доступно, 121 уже нет. Раз вердикт выносит одна функция, тест на совпадение двух вердиктов стал не нужен. Вместо `.skip` я каждое расхождение либо исправляла, либо записывала как ограничение. Итог: 46/46.
+
+**Что я улучшила бы дальше.** Остался случай длинного пересечения: запрос 600–800 при брони 650–700 показывает только причину про длительность. Я бы перевела причины на коды, которые возвращает одна функция правил, добавила UI-тесты для F4/F5 через Testing Library и сразу давала ассистенту исходники, а не одну карту.

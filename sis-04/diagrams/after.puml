@@ -1,5 +1,24 @@
-' diagrams/after.puml — the same view of your FINAL code. It must show rooms, booking, filter
-' and the UI (App and any components), with an arrow for each import. Replace this stub.
-'
+' diagrams/after.puml - the final code.
 @startuml
+title After: data, rules and UI apart; one verdict (canBook via checkRoom)
+component "App.tsx" as App
+component "components/RoomChecker.tsx" as RC
+component "components/FilterPanel.tsx" as FP
+component "components/Timeline.tsx" as TL
+component "rooms.ts\nRoom, EQUIPMENT, ROOMS" as Rooms
+component "filter.ts\nfilterRooms()" as Filter
+component "booking.ts\ncanBook(), checkRoom(),\nunavailableReasons()" as Booking
+component "lib/timeUtils.ts\nlabels, parseTimeInput, toTimeInput" as Time
+App --> RC
+RC --> Rooms : ROOMS, EQUIPMENT
+RC --> Filter : filterRooms()
+RC --> Booking : checkRoom(), unavailableReasons()
+RC --> Time
+RC --> FP
+RC --> TL
+Filter --> Rooms : type Room
+TL --> Rooms : type Room
+TL --> Time
+note right of RC : UI only: state, layout, text.\nNo room data and no rule.
+note bottom of Booking : imports nothing;\ncheckRoom passes the chosen room's\nblocked and bookings to canBook
 @enduml
