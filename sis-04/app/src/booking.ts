@@ -20,3 +20,16 @@ export function canBook({ start, end, now, blocked, bookings }: {
   // keep the room's list current with the slot that was just found free
   return true;
 }
+
+// The availability check for one room of the catalog (F3, F5): the chosen room's own
+// blocked status and bookings go into canBook. An unknown id is not available.
+// Nothing is changed (AC5): canBook only reads its input.
+export function checkRoom(
+  rooms: { id: string; blocked: boolean; bookings: Interval[] }[],
+  roomId: string,
+  request: { start: number; end: number; now: number },
+): boolean {
+  const room = rooms.find((r) => r.id === roomId);
+  if (!room) return false;
+  return canBook({ ...request, blocked: room.blocked, bookings: room.bookings });
+}
