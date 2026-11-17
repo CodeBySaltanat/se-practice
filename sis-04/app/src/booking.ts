@@ -33,3 +33,28 @@ export function checkRoom(
   if (!room) return false;
   return canBook({ ...request, blocked: room.blocked, bookings: room.bookings });
 }
+
+// The 120-minute limit of AC2, named for the reason text. canBook keeps its own literal 120
+// (it is not edited); the B1/B2 tests on both functions keep the two from drifting apart.
+export const MAX_BOOKING_MINUTES = 120;
+
+// Why a request is Unavailable, in words for the page (AC6). It does not decide anything:
+// the verdict is always checkRoom/canBook. The overlap reason reuses canBook on one booking at a time.
+export function unavailableReasons(
+  room: { blocked: boolean; bookings: Interval[] },
+  request: { start: number; end: number; now: number },
+): string[] {
+  const { start, end, now } = request;
+  const reasons: string[] = [];
+  if (!(0 <= start && start < end && end <= 1440)) reasons.push('The start time must be earlier than the end time, within the day.');
+  else {
+    if (!(start > now)) reasons.push('The start time must be after the current time.');
+    if (end - start > MAX_BOOKING_MINUTES) reasons.push(`A booking cannot be longer than ${MAX_BOOKING_MINUTES} minutes.`);
+    const clash = room.bookings.filter(
+      (b) => !canBook({ start, end, now: start - 1, blocked: false, bookings: [b] }) && end - start <= MAX_BOOKING_MINUTES,
+    );
+    if (clash.length > 0) reasons.push('The time overlaps an existing booking of this room.');
+  }
+  if (room.blocked) reasons.push('This room is blocked.');
+  return reasons;
+}

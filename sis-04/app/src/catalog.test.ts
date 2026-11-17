@@ -1,7 +1,7 @@
 // checkRoom (F3, F5) and the integration of filterRooms with checkRoom (INT).
 // A fixed catalog inside the test, not the page's ROOMS; now = 540 (09:00).
 import { describe, expect, test } from 'vitest';
-import { checkRoom } from './booking';
+import { checkRoom, unavailableReasons, MAX_BOOKING_MINUTES } from './booking';
 import { filterRooms } from './filter';
 import type { Room } from './rooms';
 
@@ -57,5 +57,22 @@ describe('filterRooms then checkRoom', () => {
     expect(shown.map((r) => r.id)).toEqual(['b', 'c']);
     expect(checkRoom(rooms, shown[0].id, { start: 600, end: 660, now: NOW })).toBe(true);
     expect(checkRoom(rooms, shown[1].id, { start: 600, end: 660, now: NOW })).toBe(false);
+  });
+});
+
+describe('unavailableReasons - the text never disagrees with the verdict', () => {
+  test('B1 B2 AC2: the named limit is 120; 120 minutes gives no reason, 121 gives the duration reason', () => {
+    const room = catalog()[1];
+    expect(MAX_BOOKING_MINUTES).toBe(120);
+    expect(unavailableReasons(room, { start: 720, end: 840, now: NOW })).toEqual([]);
+    expect(unavailableReasons(room, { start: 720, end: 841, now: NOW })).toEqual(['A booking cannot be longer than 120 minutes.']);
+  });
+  test('AC4: touching 660-720 in room a gives no reason; overlapping 630-690 gives the overlap reason', () => {
+    const room = catalog()[0];
+    expect(unavailableReasons(room, { start: 660, end: 720, now: NOW })).toEqual([]);
+    expect(unavailableReasons(room, { start: 630, end: 690, now: NOW })).toEqual(['The time overlaps an existing booking of this room.']);
+  });
+  test('F3 AC3: a blocked room always has the blocked reason', () => {
+    expect(unavailableReasons(catalog()[2], { start: 600, end: 660, now: NOW })).toEqual(['This room is blocked.']);
   });
 });

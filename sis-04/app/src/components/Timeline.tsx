@@ -1,5 +1,5 @@
 import { MINUTES_PER_DAY, minutesToLabel } from '@/lib/timeUtils';
-import type { Room } from '@/lib/roomsData';
+import type { Room } from '@/rooms';
 
 interface TimelineProps {
   room: Room;
@@ -21,12 +21,12 @@ export default function Timeline({ room, candidateStart, candidateEnd }: Timelin
         {/* Existing bookings */}
         {room.bookings.map((b) => (
           <div
-            key={b.id}
+            key={`${b.start}-${b.end}`}
             className="absolute top-0 bottom-0 bg-slate-300/80 border-x border-slate-400/60 flex items-center justify-center overflow-hidden"
             style={{ left: pct(b.start), width: pct(b.end - b.start) }}
-            title={`${minutesToLabel(b.start)}–${minutesToLabel(b.end)}: ${b.purpose}`}
+            title={`${minutesToLabel(b.start)}–${minutesToLabel(b.end)}: booked`}
           >
-            <span className="text-[10px] text-slate-700 px-1 truncate">{b.purpose}</span>
+            <span className="text-[10px] text-slate-700 px-1 truncate">Booked</span>
           </div>
         ))}
 
