@@ -115,3 +115,9 @@ describe('canBook - Practice #08 regression tests', () => {
     expect(req.bookings).toEqual(before);
   });
 });
+
+describe('canBook - Practice #10 regression test for risk R2', () => {
+  test('R2 AC4: a malformed booking 700-600 (end before start) does not let 620-680 through as Available', () => {
+    expect(canBook(input(620, 680, { bookings: [{ start: 700, end: 600 }] }))).toBe(false);
+  });
+});
