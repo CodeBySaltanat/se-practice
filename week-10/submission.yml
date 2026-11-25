@@ -39,7 +39,7 @@ checker:
   pass: 31
   fail: 0
   error: 0
-  commit: HASH
+  commit: f7c7fd3
   known_fails: []
 
 review_findings:
