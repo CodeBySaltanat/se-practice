@@ -1,0 +1,56 @@
+# week-10/submission.yml — your declaration for this lab.
+# Facts only. Every explanation goes in lab-report.md.
+
+schema: 1
+week: "10"
+
+student:
+  name: Saltanat Sultanakhmet
+  student_id: 24B032036
+  github: CodeBySaltanat
+
+assistant:
+  tool: Claude
+  model: Claude Opus 5.5
+  environment: chat
+
+project:
+  starting_point: week-08
+  baseline_commit: 6301859
+  language: ts
+  vitest: 2.1.9
+
+counts:
+  claims_challenged: 10
+  risks_registered: 7
+  risks_confirmed: 6
+  tests_final: 27
+  agents_lines_changed: 7
+
+audit:
+  level: 1
+
+decision:
+  top_two: [R1, R2]
+  mitigated: [R2, R1]
+  release: conditional
+
+checker:
+  pass: 31
+  fail: 0
+  error: 0
+  commit: f7c7fd3
+  known_fails: []
+
+review_findings:
+  - "C2: the AI said 'now' is never updated; src/components/RoomChecker.tsx lines 131 and 135 call setNowMin - unsupported"
+  - "R2: the AI's C7 (a malformed booking 700-600 gives a false Available) was confirmed by my regression test failing with 'expected true to be false'"
+  - "C3: the AI's AGENTS.md draft kept AC4 reversed and left AC6 as a placeholder; I wrote the contract's wording"
+  - "R1 / AGENTS.md line 26: npm run test:unit does not exist (Missing script); the patch names npm test"
+  - "3a-3d: no CI, no hooks, no integration test, no PR template - the project is at readiness Level 1"
+
+honesty:
+  review_was_read_only: yes
+  agents_patch_approved_by_me: yes
+  outputs_unedited: yes
+  ai_usage_disclosed: yes
