@@ -27,3 +27,11 @@ export function durationLabel(mins: Minutes): string {
   if (m === 0) return `${h} hr`;
   return `${h} hr ${m} min`;
 }
+
+// "HH:MM" in 24-hour form for 0..1440 (1440 is "24:00", the end of the day); null otherwise.
+export function minutesToHHMM(min: Minutes): string | null {
+  if (!Number.isInteger(min) || min < 0 || min > MINUTES_PER_DAY) return null;
+  const h = Math.floor(min / 60);
+  const mm = min % 60;
+  return `${h.toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`;
+}

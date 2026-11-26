@@ -1,7 +1,15 @@
 import { useMemo, useState } from 'react';
-import { Building2, Clock, CalendarClock, CheckCircle2, XCircle, Users, Ban } from 'lucide-react';
+import { Building2, Clock, CalendarClock, CheckCircle2, XCircle, Users, Ban, MessageSquareText, Loader2 } from 'lucide-react';
 import { rooms, type Room } from '@/lib/roomsData';
-import { evaluateAvailability } from '@/lib/validation';
+import { evaluateAvailability, explanationInputFor } from '@/lib/validation';
+import {
+  explainAvailability,
+  mockAdapter,
+  FALLBACK_LABEL,
+  GENERATED_LABEL,
+  REJECTED_LABEL,
+  type ExplainResult,
+} from '@/explain';
 import { minutesToLabel, rangeLabel, nowInMinutes, durationLabel, MINUTES_PER_DAY } from '@/lib/timeUtils';
 import Timeline from './Timeline';
 
@@ -37,6 +45,25 @@ export default function RoomChecker() {
 
   const showDecision = start !== null && end !== null;
   const duration = start !== null && end !== null ? end - start : 0;
+
+  // Optional explanation. Keyed by the request so a stale explanation is never shown next to a
+  // newer decision, and a slow answer for an old request is simply ignored.
+  const requestKey = `${roomId}|${start}|${end}|${nowMin}`;
+  const [explained, setExplained] = useState<{ key: string; result: ExplainResult } | null>(null);
+  const [pendingKey, setPendingKey] = useState<string | null>(null);
+  const explanation = explained?.key === requestKey ? explained.result : null;
+  const explaining = pendingKey === requestKey;
+
+  async function handleExplain() {
+    if (start === null || end === null) return;
+    const input = explanationInputFor(room, start, end, nowMin);
+    if (!input) return;
+    const key = requestKey;
+    setPendingKey(key);
+    const result = await explainAvailability(input, mockAdapter, 3000);
+    setExplained({ key, result });
+    setPendingKey((k) => (k === key ? null : k));
+  }
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-800">
@@ -169,6 +196,43 @@ export default function RoomChecker() {
           ) : (
             <div className="mt-4 p-4 rounded-lg bg-slate-50 border border-slate-200 text-sm text-slate-500">
               Select a start and end time to see the availability decision.
+            </div>
+          )}
+
+          {/* Optional explanation (F5): visibly separate from, and subordinate to, the status above */}
+          {showDecision && (
+            <div className="mt-3">
+              {!explanation && (
+                <button
+                  type="button"
+                  onClick={handleExplain}
+                  disabled={explaining}
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-60"
+                >
+                  {explaining ? <Loader2 size={16} className="animate-spin" /> : <MessageSquareText size={16} />}
+                  {explaining ? 'Explaining…' : 'Explain availability'}
+                </button>
+              )}
+
+              {explanation && (
+                <aside
+                  aria-label="Availability explanation"
+                  className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3"
+                >
+                  <p className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                    <MessageSquareText size={14} />
+                    {explanation.source === 'generated'
+                      ? GENERATED_LABEL
+                      : explanation.source === 'fallback'
+                        ? FALLBACK_LABEL
+                        : REJECTED_LABEL}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-700">{explanation.explanation}</p>
+                  <p className="mt-2 text-xs text-slate-400">
+                    The Available / Unavailable status above comes from the booking rules; this text only explains it.
+                  </p>
+                </aside>
+              )}
             </div>
           )}
 
