@@ -45,7 +45,7 @@ checker:
   pass: 27
   fail: 0
   error: 0
-  commit: HASH
+  commit: 84adc6f
   known_fails: []
 
 review_findings:
