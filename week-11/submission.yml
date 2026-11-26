@@ -1,0 +1,63 @@
+# week-11/submission.yml — your declaration for this lab.
+# Facts only. Every explanation goes in lab-report.md.
+
+schema: 1
+week: "11"
+
+student:
+  name: Saltanat Sultanakhmet
+  student_id: 24B032036
+  github: CodeBySaltanat
+
+assistant:
+  tool: Claude
+  model: Claude Opus 5.5
+  environment: chat
+
+reviewer:
+  tool: Claude
+  model: Claude Sonnet 5.5
+  same_model_as_builder: no
+
+project:
+  starting_point: week-10
+  baseline_commit: 4a47a66
+  language: ts
+  vitest: 2.1.9
+
+feature:
+  adapter: mock
+  timeout_ms: 3000
+  prompt_chosen: B
+
+counts:
+  tests_baseline: 27
+  tests_final: 77
+  cases_run: 9
+  findings_verified: 6
+  findings_confirmed: 5
+
+decision:
+  fixed: [V1, V2]
+  demo_ready: yes
+
+checker:
+  pass: 27
+  fail: 0
+  error: 0
+  commit: 51f1927
+  known_fails: []
+
+review_findings:
+  - "V1 / F2: a malformed booking (700-600) gets reason code overlap and the text claimed an existing booking - confirmed by a failing test, fixed"
+  - "V2 / F4: a throwing explanation getter made explainAvailability reject instead of falling back - confirmed by a failing test, fixed"
+  - "V3 / explain.ts agreesWithStatus: 'booked at 2 o'clock' and a 'room is blocked' reason for overlap pass the output check - confirmed, not fixed"
+  - "V5 / validation.ts: the reviewer's 'two derivations of the decision' is unsupported - both read the same rule table with the same room and now"
+  - "AGENTS.md: the building chat added 17 unasked lines to the playbook - rejected in 4.2"
+
+honesty:
+  changes_reviewed_by_me: yes
+  no_key_in_browser: yes
+  review_was_read_only: yes
+  outputs_unedited: yes
+  ai_usage_disclosed: yes
