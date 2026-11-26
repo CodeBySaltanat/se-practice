@@ -314,3 +314,29 @@ describe('E1-E9: the deck cases for Explain availability', () => {
     expect(result.explanation).toBe(fallbackExplanation('room_blocked'));
   });
 });
+
+// ---------------------------------------------------------------------------------------------
+// Practice #11, Part 7: regression tests for the two review findings I fixed (lab-report 7.3).
+describe('V1-V2: confirmed review findings', () => {
+  test('V1 F2: a malformed booking (700-600) is not explained as a plain overlap with an existing booking', async () => {
+    const broken: Room = {
+      id: 'v1', name: 'Room V', building: 'Test Block', capacity: 10, blocked: false,
+      bookings: [{ id: 'b', start: 700, end: 600, bookedBy: 'Test', purpose: 'Test' }],
+    };
+    const input = explanationInputFor(broken, 620, 680, 540)!;
+    expect(input.isAvailable).toBe(false);
+    const generated = await explainAvailability(input, mockAdapter, 1000);
+    expect(generated.explanation).toMatch(/schedule could not be checked/);
+    expect(fallbackExplanation(input.reasonCode)).toMatch(/schedule could not be checked/);
+  });
+  test('V2 F4: an adapter answer whose explanation getter throws gives the fallback instead of a rejected promise', async () => {
+    const hostile: ExplainAdapter = async () => ({
+      get explanation(): string {
+        throw new Error('getter failure');
+      },
+    });
+    const result = await explainAvailability(req('available'), hostile, 1000);
+    expect(result.source).toBe('fallback');
+    expect(result.explanation).toBe(fallbackExplanation('available'));
+  });
+});
