@@ -27,16 +27,20 @@ function req(reasonCode: ReasonCode = 'available', extra: Partial<Record<keyof E
 const returning = (explanation: unknown): ExplainAdapter => async () => ({ explanation });
 
 describe('mock adapter + happy path (F2)', () => {
-  test.each(REASON_CODES)('%s: the mock explanation passes every output check', async (code) => {
+  test('every reason code: the mock explanation passes every output check', async () => {
+    for (const code of REASON_CODES) {
     const result = await explainAvailability(req(code), mockAdapter, 1000);
     expect(result.source).toBe('generated');
     expect(result.explanation.length).toBeGreaterThan(0);
     expect(result.explanation.length).toBeLessThanOrEqual(280);
     expect(countSentences(result.explanation)).toBeLessThanOrEqual(2);
+  }
   });
-  test.each(REASON_CODES)('%s: still passes with a 60-character room label', async (code) => {
+  test('every reason code: still passes with a 60-character room label', async () => {
+    for (const code of REASON_CODES) {
     const result = await explainAvailability(req(code, { roomLabel: 'R'.repeat(60) }), mockAdapter, 1000);
     expect(result.source).toBe('generated');
+  }
   });
   test('available: the explanation names the requested times and no others', async () => {
     const result = await explainAvailability(req('available'), mockAdapter, 1000);
@@ -58,7 +62,8 @@ describe('mock adapter + happy path (F2)', () => {
 });
 
 describe('F3: empty, malformed or overly long input is rejected', () => {
-  test.each([
+  test('F3: every malformed input in the table is rejected before the adapter is called', async () => {
+    for (const [, input] of [
     ['null', null],
     ['a string', 'Room 101 10:00-11:00'],
     ['an array', []],
@@ -77,11 +82,12 @@ describe('F3: empty, malformed or overly long input is rejected', () => {
     ['isAvailable disagrees with reasonCode', req('overlap', { isAvailable: true })],
     ['reasonCode available but isAvailable false', req('available', { isAvailable: false })],
     ['an extra field (booking details must not leak in)', { ...req('available'), bookedBy: 'someone' }],
-  ])('%s', async (_name, input) => {
+  ]) {
     const adapter = vi.fn(mockAdapter);
     const result = await explainAvailability(input, adapter, 1000);
     expect(result.source).toBe('rejected');
     expect(adapter).not.toHaveBeenCalled();
+  }
   });
   test('a 60-character label is accepted, and labels are trimmed before the adapter sees them', async () => {
     expect(validateExplainInput(req('available', { roomLabel: ` ${'R'.repeat(60)} ` })).ok).toBe(true);
@@ -132,16 +138,19 @@ describe('F4: timeout, error or unavailable key produces a safe fallback', () =>
     expect((await explainAvailability(req('available'), mockAdapter, NaN)).source).toBe('generated');
     expect((await explainAvailability(req('available'), mockAdapter, -5)).source).toBe('generated');
   });
-  test.each(REASON_CODES)('%s: the fallback agrees with the status and names no time', (code) => {
+  test('every reason code: the fallback agrees with the status and names no time', () => {
+    for (const code of REASON_CODES) {
     const text = fallbackExplanation(code);
     expect(agreesWithStatus(text, code === 'available')).toBe(true);
     expect(timesMentioned(text)).toEqual([]);
     expect(countSentences(text)).toBe(1);
+  }
   });
 });
 
 describe('F2: output that could mislead is rejected and replaced by the fallback', () => {
-  test.each([
+  test('available request: every misleading answer in the table falls back', async () => {
+    for (const [, adapter] of [
     ['not an object', async () => 'Room 101 is free.'],
     ['explanation missing', async () => ({ text: 'Room 101 is free.' })],
     ['explanation not a string', returning(42)],
@@ -154,17 +163,20 @@ describe('F2: output that could mislead is rejected and replaced by the fallback
     ['invents a time (24-hour)', returning('Room 101 is free from 10:00 to 11:00, but busy at 14:00.')],
     ['invents a time (12-hour)', returning('Room 101 is free from 10:00 AM, until 3 PM.')],
     ['invents noon', returning('Room 101 is free until noon.')],
-  ] as [string, ExplainAdapter][])('available request, %s', async (_name, adapter) => {
+  ] as [string, ExplainAdapter][]) {
     const result = await explainAvailability(req('available'), adapter, 1000);
     expect(result).toMatchObject({ source: 'fallback', explanation: fallbackExplanation('available') });
+  }
   });
-  test.each([
+  test('unavailable request: every misleading answer in the table falls back', async () => {
+    for (const [, text] of [
     ['claims available', 'Room 101 is available from 10:00 to 11:00.'],
     ['mixed message', 'Room 101 is not available at 10:00, but it is free at 11:00.'],
     ['invents booking details', 'Room 101 overlaps a booking that runs until 12:30.'],
-  ])('unavailable request, %s', async (_name, text) => {
+  ]) {
     const result = await explainAvailability(req('overlap'), returning(text), 1000);
     expect(result).toMatchObject({ source: 'fallback', explanation: fallbackExplanation('overlap') });
+  }
   });
   test('the requested times in 12-hour form are allowed', () => {
     const input = validateExplainInput(req('available', { start: '14:00', end: '15:30' }));

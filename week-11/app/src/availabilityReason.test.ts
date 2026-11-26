@@ -15,7 +15,8 @@ describe('availabilityReason - one code per rule', () => {
     expect([...REASON_CODES]).toEqual(['invalid_time', 'past_time', 'too_long', 'room_blocked', 'overlap', 'available']);
   });
   type Extra = { blocked?: boolean; bookings?: Interval[] };
-  test.each<[ReasonCode, number, number, Extra]>([
+  test('every row: availabilityReason returns the expected code', () => {
+    for (const [code, start, end, extra] of ([
     ['available', 660, 720, {}],
     ['invalid_time', 750, 720, {}], // reversed
     ['invalid_time', 720, 720, {}], // zero length
@@ -27,8 +28,9 @@ describe('availabilityReason - one code per rule', () => {
     ['room_blocked', 660, 720, { blocked: true }],
     ['overlap', 630, 690, {}],
     ['overlap', 620, 680, { bookings: [{ start: 700, end: 600 }] }], // malformed schedule (R2)
-  ])('%s: %d-%d', (code, start, end, extra) => {
+  ] as [ReasonCode, number, number, Extra][])) {
     expect(availabilityReason(input(start, end, extra))).toBe(code);
+  }
   });
   test('touching endpoints stay available (AC4)', () => {
     expect(availabilityReason(input(570, 600))).toBe('available');
