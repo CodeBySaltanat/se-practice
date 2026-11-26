@@ -236,3 +236,81 @@ describe('explanationInputFor: the page feeds the contract from the deterministi
     }
   });
 });
+
+// ---------------------------------------------------------------------------------------------
+// Practice #11, Part 5: the deck's nine cases E1-E9 (lab README section 5, Part 5).
+// One fictional room, booked 10:00-11:00; now = 09:00 (540). The input comes from the
+// deterministic rules through explanationInputFor, exactly as the page builds it.
+describe('E1-E9: the deck cases for Explain availability', () => {
+  const NOW = 540;
+  const room = (blocked = false): Room => ({
+    id: 'e-room',
+    name: 'Room E',
+    building: 'Test Block',
+    capacity: 10,
+    blocked,
+    bookings: [{ id: 'b1', start: 600, end: 660, bookedBy: 'Test', purpose: 'Test' }],
+  });
+  const explain = async (r: Room, start: number, end: number) => {
+    const input = explanationInputFor(r, start, end, NOW)!;
+    return { input, result: await explainAvailability(input, mockAdapter, 1000) };
+  };
+
+  test('E1 F2: 11:00-12:00 after the 10:00-11:00 booking is available, and the explanation says available', async () => {
+    const { input, result } = await explain(room(), 660, 720);
+    expect(input.reasonCode).toBe('available');
+    expect(input.isAvailable).toBe(true);
+    expect(result.source).toBe('generated');
+    expect(agreesWithStatus(result.explanation, true)).toBe(true);
+  });
+  test('E2 F2: 10:30-11:30 overlaps the booking; the explanation says unavailable and mentions the overlap', async () => {
+    const { input, result } = await explain(room(), 630, 690);
+    expect(input.reasonCode).toBe('overlap');
+    expect(input.isAvailable).toBe(false);
+    expect(agreesWithStatus(result.explanation, false)).toBe(true);
+    expect(result.explanation).toMatch(/overlap/i);
+  });
+  test('E3 F2: a blocked room gives room_blocked', async () => {
+    const { input, result } = await explain(room(true), 720, 780);
+    expect(input.reasonCode).toBe('room_blocked');
+    expect(agreesWithStatus(result.explanation, false)).toBe(true);
+  });
+  test('E4 F2: 12:30-12:00 gives invalid_time', async () => {
+    const { input } = await explain(room(), 750, 720);
+    expect(input.reasonCode).toBe('invalid_time');
+    expect(input.isAvailable).toBe(false);
+  });
+  test('E5 F2: 08:00-08:30 at 09:00 gives past_time', async () => {
+    const { input } = await explain(room(), 480, 510);
+    expect(input.reasonCode).toBe('past_time');
+    expect(input.isAvailable).toBe(false);
+  });
+  test('E6 F3: a blank room label is rejected before the adapter is called', async () => {
+    const adapter = vi.fn(mockAdapter);
+    const result = await explainAvailability(req('available', { roomLabel: '   ' }), adapter, 1000);
+    expect(result.source).toBe('rejected');
+    expect(adapter).not.toHaveBeenCalled();
+  });
+  test('E7 F3: a 500-character room label is rejected', async () => {
+    const adapter = vi.fn(mockAdapter);
+    const result = await explainAvailability(req('available', { roomLabel: 'x'.repeat(500) }), adapter, 1000);
+    expect(result.source).toBe('rejected');
+    expect(adapter).not.toHaveBeenCalled();
+  });
+  test('E8 F4: an adapter that never answers times out into the fallback', async () => {
+    const never: ExplainAdapter = () => new Promise(() => {});
+    const started = Date.now();
+    const result = await explainAvailability(req('overlap'), never, 50);
+    expect(result.source).toBe('fallback');
+    expect(result.explanation).toBe(fallbackExplanation('overlap'));
+    expect(Date.now() - started).toBeLessThan(1000);
+  });
+  test('E9 F4: an adapter that throws (simulated API failure) gives the fallback', async () => {
+    const failing: ExplainAdapter = async () => {
+      throw new Error('simulated API failure');
+    };
+    const result = await explainAvailability(req('room_blocked'), failing, 1000);
+    expect(result.source).toBe('fallback');
+    expect(result.explanation).toBe(fallbackExplanation('room_blocked'));
+  });
+});

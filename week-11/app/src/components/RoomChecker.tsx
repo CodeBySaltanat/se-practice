@@ -5,6 +5,7 @@ import { evaluateAvailability, explanationInputFor } from '@/lib/validation';
 import {
   explainAvailability,
   mockAdapter,
+  type ExplainAdapter,
   FALLBACK_LABEL,
   GENERATED_LABEL,
   REJECTED_LABEL,
@@ -12,6 +13,11 @@ import {
 } from '@/explain';
 import { minutesToLabel, rangeLabel, nowInMinutes, durationLabel, MINUTES_PER_DAY } from '@/lib/timeUtils';
 import Timeline from './Timeline';
+
+// A stand-in for an API that is down: always throws, so explainAvailability shows its fallback.
+const failingAdapter: ExplainAdapter = async () => {
+  throw new Error('simulated API failure');
+};
 
 function timeInput(value: string): number | null {
   if (!value) return null;
@@ -48,7 +54,8 @@ export default function RoomChecker() {
 
   // Optional explanation. Keyed by the request so a stale explanation is never shown next to a
   // newer decision, and a slow answer for an old request is simply ignored.
-  const requestKey = `${roomId}|${start}|${end}|${nowMin}`;
+  const [simulateFailure, setSimulateFailure] = useState(false);
+  const requestKey = `${roomId}|${start}|${end}|${nowMin}|${simulateFailure}`;
   const [explained, setExplained] = useState<{ key: string; result: ExplainResult } | null>(null);
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const explanation = explained?.key === requestKey ? explained.result : null;
@@ -60,7 +67,9 @@ export default function RoomChecker() {
     if (!input) return;
     const key = requestKey;
     setPendingKey(key);
-    const result = await explainAvailability(input, mockAdapter, 3000);
+    // "Simulate API failure" swaps in an adapter that throws, to show the fallback (F4) on the page.
+    const adapter: ExplainAdapter = simulateFailure ? failingAdapter : mockAdapter;
+    const result = await explainAvailability(input, adapter, 3000);
     setExplained({ key, result });
     setPendingKey((k) => (k === key ? null : k));
   }
@@ -202,6 +211,15 @@ export default function RoomChecker() {
           {/* Optional explanation (F5): visibly separate from, and subordinate to, the status above */}
           {showDecision && (
             <div className="mt-3">
+              <label className="mb-2 flex items-center gap-2 text-xs text-slate-500">
+                <input
+                  type="checkbox"
+                  checked={simulateFailure}
+                  onChange={(e) => setSimulateFailure(e.target.checked)}
+                  className="accent-emerald-600"
+                />
+                Simulate API failure
+              </label>
               {!explanation && (
                 <button
                   type="button"
