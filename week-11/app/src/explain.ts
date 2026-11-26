@@ -84,7 +84,8 @@ const FALLBACK_TEXT: Record<ReasonCode, string> = {
   past_time: 'This time slot is unavailable because the start time is not after the current time.',
   too_long: `This time slot is unavailable because it is longer than ${MAX_BOOKING_MINUTES} minutes.`,
   room_blocked: 'This time slot is unavailable because the room is blocked.',
-  overlap: 'This time slot is unavailable because it overlaps an existing booking.',
+  overlap:
+    "This time slot is unavailable because it overlaps an existing booking or the room's schedule could not be checked.",
 };
 
 export function fallbackExplanation(reasonCode: ReasonCode): string {
@@ -103,7 +104,7 @@ export const mockAdapter: ExplainAdapter = async (input) => {
     past_time: `${room} is not available ${slot} because that start time has already passed. Try a later start time.`,
     too_long: `${room} is not available ${slot} because bookings are limited to ${MAX_BOOKING_MINUTES} minutes. Try a shorter slot.`,
     room_blocked: `${room} is blocked, so it can't be booked ${slot}. Please check again later.`,
-    overlap: `${room} is not available ${slot} because it overlaps an existing booking. Try a time that does not overlap it.`,
+    overlap: `${room} is not available ${slot} because it overlaps an existing booking or the room's schedule could not be checked. Try another time.`,
   };
   return { explanation: text[input.reasonCode] } satisfies ExplainOutput;
 };
