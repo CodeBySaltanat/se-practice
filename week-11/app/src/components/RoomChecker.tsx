@@ -69,9 +69,13 @@ export default function RoomChecker() {
     setPendingKey(key);
     // "Simulate API failure" swaps in an adapter that throws, to show the fallback (F4) on the page.
     const adapter: ExplainAdapter = simulateFailure ? failingAdapter : mockAdapter;
-    const result = await explainAvailability(input, adapter, 3000);
-    setExplained({ key, result });
-    setPendingKey((k) => (k === key ? null : k));
+    try {
+      const result = await explainAvailability(input, adapter, 3000);
+      setExplained({ key, result });
+    } finally {
+      // Clear the spinner even if something unexpected throws.
+      setPendingKey((k) => (k === key ? null : k));
+    }
   }
 
   return (

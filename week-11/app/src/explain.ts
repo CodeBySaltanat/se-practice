@@ -289,7 +289,13 @@ export async function explainAvailability(
     return fallback(err instanceof TimeoutError ? `timeout: ${err.message}` : 'adapter error');
   }
 
-  const verdict = validateExplanation(output, safeInput);
+  let verdict: ReturnType<typeof validateExplanation>;
+  try {
+    verdict = validateExplanation(output, safeInput);
+  } catch {
+    // A hostile or broken answer (e.g. a throwing getter) must not escape: F4 promises a fallback.
+    return fallback('output check failed');
+  }
   if (!verdict.ok) return fallback(`output rejected: ${verdict.error}`);
   return { explanation: verdict.value, source: 'generated' };
 }
