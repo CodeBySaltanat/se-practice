@@ -1,78 +1,63 @@
 # week-11/submission.yml — your declaration for this lab.
-#
-# Facts only. Every explanation goes in lab-report.md; nothing here repeats prose.
-# Fill every value. Check it before you push:
-#
-#     python tests/validate_submission.py
-#
-# The validator checks shape, never quality. A green run is the floor, not the grade.
-# If you cannot run Python, fill the file by hand against the comments — a malformed
-# file costs you nothing if the content is there.
+# Facts only. Every explanation goes in lab-report.md.
 
 schema: 1
 week: "11"
 
 student:
-  name:
-  student_id:          # as in KBTU records, e.g. 00X000000
-  github:              # your GitHub username, the one that owns the repo
+  name: Saltanat Sultanakhmet
+  student_id: 24B032036
+  github: CodeBySaltanat
 
 assistant:
-  tool:                # the assistant that built the feature: Bolt.new, Claude Code, Cursor, ...
-  model:               # its exact model with its version, or: not displayed
-  environment:         # bolt | claude-code | cursor | copilot | chat | other
+  tool: Claude
+  model: Claude Opus 5.5
+  environment: chat
 
 reviewer:
-  tool:                # the assistant that reviewed in Task 6
-  model:               # its exact model with its version, or: not displayed
-  same_model_as_builder: # yes | no
+  tool: Claude
+  model: Claude Sonnet 5.5
+  same_model_as_builder: no
 
 project:
-  starting_point:      # week-10 | week-08
-  baseline_commit:     # the checkpoint of Part 0: git rev-parse --short HEAD after "baseline from week 10"
-  language:            # ts | js   the language of your booking and explain modules
-  vitest:              # the Vitest version from the "RUN  v..." line, e.g. 3.2.4
+  starting_point: week-10
+  baseline_commit: 4a47a66
+  language: ts
+  vitest: 2.1.9
 
 feature:
-  adapter:             # mock | mock-and-server   (server = a real model behind your own server, optional)
-  timeout_ms:          # the timeout explainAvailability uses
-  prompt_chosen:       # A | B | C   from lab-report.md §5.4
+  adapter: mock
+  timeout_ms: 3000
+  prompt_chosen: B
 
 counts:
-  tests_baseline:      # the total of the §2.2 run
-  tests_final:         # the total of the §8.3 run
-  cases_run:           # rows E1-E9 in §6.1 with verdict pass or fail
-  findings_verified:   # rows in §7.3
-  findings_confirmed:  # of those, how many are confirmed
+  tests_baseline: 27
+  tests_final: 77
+  cases_run: 9
+  findings_verified: 6
+  findings_confirmed: 5
 
 decision:
-  fixed: []            # the two finding IDs you fixed in §8, e.g. [V1, V2]
-  demo_ready:          # yes | no   from §8.4
+  fixed: [V1, V2]
+  demo_ready: yes
 
 checker:
-  # Numbers from YOUR last run of: python tests/check_feature.py
-  # They must add up to the number of checks it runs (27).
-  # Report them as they came out.
-  # A FAIL you report and explain in lab-report.md costs you nothing extra. A hidden one costs the criterion.
-  pass:
-  fail:
-  error:
-  commit:              # the commit you ran the checker at: git rev-parse --short HEAD
-                       # (normally the commit just before you commit this file — that is fine)
-  known_fails: []      # every check ID that is still FAIL or ERROR, explained in lab-report.md §9, e.g. [E2]
+  pass: 27
+  fail: 0
+  error: 0
+  commit: HASH
+  known_fails: []
 
 review_findings:
-  # Three or more. One line each, and each one names what it is about: a finding ID (V1...),
-  # a test case (E1-E9), a criterion (F1-F5, AC1-AC6), a reason code, or a file.
-  # Worthless:        "The reviewer found some issues that were not real"
-  # Worth everything: "V3: the reviewer said roomLabel allows prompt injection; App.tsx takes it from a fixed list - unsupported"
-  -
-  -
-  -
+  - "V1 / F2: a malformed booking (700-600) gets reason code overlap and the text claimed an existing booking - confirmed by a failing test, fixed"
+  - "V2 / F4: a throwing explanation getter made explainAvailability reject instead of falling back - confirmed by a failing test, fixed"
+  - "V3 / explain.ts agreesWithStatus: 'booked at 2 o'clock' and a 'room is blocked' reason for overlap pass the output check - confirmed, not fixed"
+  - "V5 / validation.ts: the reviewer's 'two derivations of the decision' is unsupported - both read the same rule table with the same room and now"
+  - "AGENTS.md: the building chat added 17 unasked lines to the playbook - rejected in 4.2"
 
 honesty:
-  changes_reviewed_by_me:        # yes | no   every changed file in §4.2 decided by you
-  no_key_in_browser:             # yes | no   no key, token or provider call in app/src/
-  review_was_read_only:          # yes | no   the Task 6 review edited nothing
-  outputs_unedited:              # yes | no   every run in lab-report.md is pasted from a real terminal
-  ai_usage_disclosed:            # yes | no   AI_USAGE.md is complete
+  changes_reviewed_by_me: yes
+  no_key_in_browser: yes
+  review_was_read_only: yes
+  outputs_unedited: yes
+  ai_usage_disclosed: yes
